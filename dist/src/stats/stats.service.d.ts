@@ -48,10 +48,9 @@ export declare class StatsService {
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
-        saleId: string;
-        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
+        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -59,5 +58,6 @@ export declare class StatsService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
+        saleId: string;
     })[]>;
 }

@@ -39,10 +39,9 @@ export declare class PaymentsController {
             createdAt: Date;
             status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
-            saleId: string;
-            totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
+            totalPrice: number;
             finalPrice: number;
             paidAmount: number;
             qrCode: string | null;
@@ -50,13 +49,14 @@ export declare class PaymentsController {
             memoEditable: boolean;
             locked: boolean;
             invoiceIssued: boolean;
+            saleId: string;
         };
     } & {
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
-        orderId: string;
         amount: number;
+        orderId: string;
         transactionCode: string | null;
         rawData: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;

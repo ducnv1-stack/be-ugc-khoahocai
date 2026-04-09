@@ -46,7 +46,7 @@ async function main() {
     { name: 'ACCOUNTANT', description: 'Kế toán', isSystem: true },
   ];
 
-  const dbRoles = {};
+  const dbRoles: Record<string, any> = {};
   for (const role of roles) {
     const createdRole = await prisma.role.upsert({
       where: { name: role.name },
