@@ -1,0 +1,95 @@
+import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+import { SocketGateway } from '../socket/socket.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+export declare class PaymentsService {
+    private prisma;
+    private configService;
+    private socketGateway;
+    private notificationsService;
+    private readonly logger;
+    constructor(prisma: PrismaService, configService: ConfigService, socketGateway: SocketGateway, notificationsService: NotificationsService);
+    handleSePayWebhook(payload: any, authHeader: string): Promise<{
+        status: string;
+        message: string;
+    } | {
+        status: string;
+        message?: undefined;
+    }>;
+    getWebhookLogs(): Promise<{
+        id: string;
+        createdAt: Date;
+        status: string;
+        source: string;
+        payload: import("@prisma/client/runtime/library").JsonValue;
+        retryCount: number;
+    }[]>;
+    findAllPayments(): Promise<({
+        order: {
+            customer: {
+                id: string;
+                email: string | null;
+                name: string;
+                createdAt: Date;
+                code: string | null;
+                phone: string;
+                source: string | null;
+                notes: string | null;
+                tags: string[];
+                assignedSaleId: string | null;
+                deletedAt: Date | null;
+            };
+            items: ({
+                course: {
+                    id: string;
+                    name: string;
+                    createdAt: Date;
+                    code: string;
+                    description: string | null;
+                    price: number;
+                    duration: number;
+                    status: string;
+                };
+            } & {
+                id: string;
+                price: number;
+                orderId: string;
+                courseId: string;
+            })[];
+        } & {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.OrderStatus;
+            customerId: string;
+            saleId: string;
+            totalPrice: number;
+            discountType: import(".prisma/client").$Enums.DiscountType | null;
+            discountValue: number | null;
+            finalPrice: number;
+            paidAmount: number;
+            qrCode: string | null;
+            memo: string | null;
+            memoEditable: boolean;
+            locked: boolean;
+            invoiceIssued: boolean;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PaymentStatus;
+        orderId: string;
+        amount: number;
+        transactionCode: string | null;
+        rawData: import("@prisma/client/runtime/library").JsonValue | null;
+    })[]>;
+    private removeAccents;
+    getWebhookSettings(): Promise<{
+        url: string;
+        secret: any;
+        bankInfo: {
+            id: any;
+            accountNo: any;
+            accountName: any;
+        };
+    }>;
+}

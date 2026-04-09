@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Phân quyền & Vai trò ---
+// Bỏ enum Role, sử dụng model Role động
+// enum Role {
+//   ADMIN
+//   SALE
+//   INSTRUCTOR
+//   ACCOUNTANT
+// }
+
+// --- Trạng thái Đơn hàng & Thanh toán ---
+enum OrderStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum ReminderType {
+  EMAIL
+  ZALO
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+}
+
+// --- Người dùng Hệ thống ---
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password       String
+  name           String
+  roleId         String
+  role           Role      @relation(fields: [roleId], references: [id])
+  isOnline       Boolean   @default(false)
+  lastAssignedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  customers Customer[]
+  orders    Order[]
+  schedules Schedule[] @relation("InstructorSchedules")
+  auditLogs AuditLog[]
+  notifications Notification[]
+}
+
+// --- Khách hàng ---
+model Customer {
+  id             String    @id @default(uuid())
+  code           String?   @unique // Mã khách hàng (KHxxxx)
+  name           String
+  phone          String    @unique // Ràng buộc không cho tạo trùng số điện thoại
+  email          String?
+  source         String? // Nguồn khách (Facebook, Google,...)
+  notes          String?
+  tags           String[]  @default([])
+  assignedSaleId String?
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime? // Phục vụ Soft Delete
+
+  assignedSale User?             @relation(fields: [assignedSaleId], references: [id])
+  orders       Order[]
+  schedules    ScheduleStudent[]
+  reminders    Reminder[]
+
+  @@index([phone])
+}
+
+// --- Khóa học ---
+model Course {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  price       Float
+  duration    Int // Thời lượng học (phút)
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+
+  orderItems OrderItem[]
+  schedules  Schedule[]
+}
+
+// --- Đơn hàng ---
+model Order {
+  id            String        @id @default(uuid())
+  customerId    String
+  saleId        String
+  totalPrice    Float // Giá gốc
+  discountType  DiscountType?
+  discountValue Float?
+  finalPrice    Float // Giá cuối sau chiết khấu
+  paidAmount    Float         @default(0) // Số tiền đã thanh toán thực tế
+  status        OrderStatus   @default(PENDING)
+  qrCode        String?
+  memo          String?       // Nội dung chuyển khoản (Memo)
+  memoEditable  Boolean       @default(true) 
+  locked        Boolean       @default(false) // Khóa đơn hàng sau khi có QR
+  invoiceIssued Boolean       @default(false) // Đã xuất hóa đơn hay chưa
+  createdAt     DateTime      @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  sale     User     @relation(fields: [saleId], references: [id])
+
+  items     OrderItem[]
+  payments  Payment[]
+  refunds   Refund[]
+  histories OrderHistory[]
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  orderId  String
+  courseId String
+  price    Float // Lưu giá tại thời điểm tạo đơn
+
+  order  Order  @relation(fields: [orderId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+}
+
+// --- Giao dịch & Hoàn tiền ---
+model Payment {
+  id              String        @id @default(uuid())
+  orderId         String
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  transactionCode String?       @unique // Check idempotency từ SePay
+  rawData         Json?
+  createdAt       DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Refund {
+  id          String   @id @default(uuid())
+  orderId     String
+  amount      Float
+  reason      String?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  processedBy String?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+// --- Lịch học & Điểm danh ---
+model Schedule {
+  id            String   @id @default(uuid())
+  courseId      String
+  instructorId  String
+  startTime     DateTime
+  endTime       DateTime
+  meetingUrl    String? // Link Google Meet (Nhập tay GĐ1)
+  googleEventId String? // Để dành cho GĐ sau
+  createdAt     DateTime @default(now())
+
+  course     Course @relation(fields: [courseId], references: [id])
+  instructor User   @relation("InstructorSchedules", fields: [instructorId], references: [id])
+
+  students  ScheduleStudent[]
+  reminders Reminder[]
+}
+
+model ScheduleStudent {
+  id         String  @id @default(uuid())
+  scheduleId String
+  customerId String
+  isAttended Boolean @default(false)
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([scheduleId, customerId])
+}
+
+// --- Nhắc lịch ---
+model Reminder {
+  id         String         @id @default(uuid())
+  scheduleId String
+  customerId String
+  type       ReminderType
+  status     ReminderStatus @default(PENDING)
+  sendAt     DateTime
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+// --- Nhật ký Logs ---
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String // CREATE, UPDATE, DELETE
+  entityType String
+  entityId   String
+  oldData    Json?
+  newData    Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model OrderHistory {
+  id        String   @id @default(uuid())
+  orderId   String
+  action    String
+  changedBy String
+  diffData  Json?
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model WebhookLog {
+  id         String   @id @default(uuid())
+  source     String   @default("SEPAY")
+  payload    Json
+  status     String
+  retryCount Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+// --- Phân quyền Động ---
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // "ADMIN", "SALE", "INSTRUCTOR"
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  code        String  @unique // "dashboard.view", "customers.manage"
+  name        String // "Xem tổng quan"
+  module      String // "dashboard", "customers"
+  description String?
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+// --- Cài đặt Hệ thống ---
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique // "theme", "general"
+  value     Json // {"primaryColor": "#2563eb", "siteName": "CSMS CRM"}
+  updatedAt DateTime @updatedAt
+}
+
+// --- Thông báo hệ thống ---
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?  // Nullable if global notification
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
