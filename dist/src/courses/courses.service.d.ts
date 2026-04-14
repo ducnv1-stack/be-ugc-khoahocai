@@ -13,6 +13,7 @@ export declare class CoursesService {
         price: number;
         duration: number;
         status: string;
+        totalSessions: number;
     }>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
@@ -23,6 +24,7 @@ export declare class CoursesService {
         price: number;
         duration: number;
         status: string;
+        totalSessions: number;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
@@ -33,6 +35,7 @@ export declare class CoursesService {
         price: number;
         duration: number;
         status: string;
+        totalSessions: number;
     }>;
     update(id: string, updateCourseDto: UpdateCourseDto): Promise<{
         id: string;
@@ -43,5 +46,6 @@ export declare class CoursesService {
         price: number;
         duration: number;
         status: string;
+        totalSessions: number;
     }>;
 }

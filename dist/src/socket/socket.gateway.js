@@ -34,6 +34,10 @@ let SocketGateway = class SocketGateway {
     emitWebhookLogUpdated(data) {
         this.server.emit('webhook.log.updated', data);
     }
+    emitCustomerCreated(data) {
+        console.log(`[SocketGateway] Emitting customer.created for customer: ${data.name} (${data.id})`);
+        this.server.emit('customer.created', data);
+    }
 };
 exports.SocketGateway = SocketGateway;
 __decorate([

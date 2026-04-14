@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { CreateOrderDto, DiscountType as DtoDiscountType } from './dto/create-order.dto';
 import { OrderStatus, DiscountType } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { CustomersService } from '../customers/customers.service';
+import { SocketGateway } from '../socket/socket.gateway';
 
 @Injectable()
 export class OrdersService {
@@ -11,13 +13,42 @@ export class OrdersService {
     private prisma: PrismaService,
     private configService: ConfigService,
     private auditService: AuditService,
+    private customersService: CustomersService,
+    private socketGateway: SocketGateway,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, saleId: string) {
-    const { customerId, courseIds, discountType, discountValue, paymentAmount, primaryCourseId } = createOrderDto;
+    const { customerId, customerName, customerPhone, courseIds, discountType, discountValue, paymentAmount, primaryCourseId } = createOrderDto;
+
+    let targetCustomerId = customerId;
+    let isLead = false;
+
+    // 1. Xử lý Khách hàng (Tự động tạo nếu chỉ có SĐT)
+    if (!targetCustomerId) {
+      if (!customerPhone) throw new BadRequestException('Vui lòng cung cấp customerId hoặc customerPhone');
+      
+      // Kiểm tra xem SĐT đã tồn tại chưa
+      let customer = await this.prisma.customer.findUnique({ where: { phone: customerPhone } });
+      
+      if (!customer) {
+        // Tạo khách hàng mới (Lead)
+        const nextCode = await this.customersService.generateNextCode();
+        customer = await this.prisma.customer.create({
+          data: {
+            code: nextCode,
+            name: customerName || `Khách vãng lai ${customerPhone}`,
+            phone: customerPhone,
+            assignedSaleId: saleId,
+            notes: 'Khách hàng tạo nhanh từ luồng QR'
+          }
+        });
+      }
+      targetCustomerId = customer.id;
+      isLead = true;
+    }
 
     const customer = await this.prisma.customer.findUnique({
-      where: { id: customerId },
+      where: { id: targetCustomerId },
     });
     if (!customer) throw new NotFoundException('Không tìm thấy khách hàng');
 
@@ -47,9 +78,9 @@ export class OrdersService {
       primaryCourse = courses[0];
     }
     
-    // Tạo Memo mặc định: [MãKhách] [MãKhóa] [SĐT]
-    const rawMemo = `${customer.code || 'KH'} ${primaryCourse?.code || 'UGC'} ${customer.phone}`.toUpperCase();
-    const memo = this.removeAccents(rawMemo);
+    // Tạo Memo: [MãKH] [SĐT] [MãKhóa] (Tối ưu cho việc quét tự động chính xác cao)
+    const rawMemo = `${customer.code || ''} ${customer.phone} ${primaryCourse?.code || 'UGC'}`.toUpperCase();
+    const memo = this.removeAccents(rawMemo).trim();
 
     const amountToPay = paymentAmount || finalPrice;
     const qrUrl = this.generateQrUrl(amountToPay, memo);
@@ -57,7 +88,7 @@ export class OrdersService {
     const order: any = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
-          customerId,
+          customerId: targetCustomerId,
           saleId,
           totalPrice,
           discountType: prismaDiscountType,
@@ -66,8 +97,9 @@ export class OrdersService {
           paidAmount: 0,
           status: OrderStatus.PENDING,
           qrCode: qrUrl,
-          memo, // Lưu memo vào DB
+          memo,
           memoEditable: true,
+          isLead,
           items: {
             create: courses.map(c => ({
               courseId: c.id,
@@ -85,20 +117,25 @@ export class OrdersService {
 
     await this.auditService.logAction({
       userId: saleId,
-      action: 'CREATE_ORDER',
+      action: isLead ? 'QUICK_CREATE_ORDER' : 'CREATE_ORDER',
       entityType: 'ORDER',
       entityId: order.id,
       newData: {
         totalPrice: order.totalPrice,
         finalPrice: order.finalPrice,
+        isLead,
         courses: courses.map(c => c.code).join(', '),
         context: { 
           customerName: order.customer?.name, 
           customerPhone: order.customer?.phone,
-          customerCode: order.customer?.code 
         }
       }
     });
+
+    // Emit realtime event sau khi mọi thứ (bao gồm Order) đã xong để FE load đầy đủ
+    if (isLead) {
+      this.socketGateway.emitCustomerCreated(order.customer || order);
+    }
 
     return order;
   }
@@ -132,7 +169,7 @@ export class OrdersService {
     const order: any = await this.findOne(id);
     if (!order) throw new NotFoundException('Đơn hàng không tồn tại');
 
-    const normalizedMemo = this.removeAccents(newMemo);
+    const normalizedMemo = this.removeAccents(newMemo).toUpperCase().trim();
 
     // Khi cập nhật Memo, ta cập nhật lại luôn link QR cho khớp nội dung mới
     const amountToPay = order.finalPrice - order.paidAmount;

@@ -21,7 +21,8 @@ export declare class CustomersController {
         assignedSaleId: string | null;
         deletedAt: Date | null;
     }>;
-    findAll(search?: string, skip?: string, take?: string): Promise<({
+    findAll(search?: string, skip?: string, take?: string): Promise<{
+        isLead: boolean;
         orders: ({
             items: ({
                 course: {
@@ -33,6 +34,7 @@ export declare class CustomersController {
                     price: number;
                     duration: number;
                     status: string;
+                    totalSessions: number;
                 };
             } & {
                 id: string;
@@ -45,9 +47,10 @@ export declare class CustomersController {
             createdAt: Date;
             status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
+            saleId: string;
+            totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
-            totalPrice: number;
             finalPrice: number;
             paidAmount: number;
             qrCode: string | null;
@@ -55,12 +58,11 @@ export declare class CustomersController {
             memoEditable: boolean;
             locked: boolean;
             invoiceIssued: boolean;
-            saleId: string;
+            isLead: boolean;
         })[];
         assignedSale: {
             name: string;
         } | null;
-    } & {
         id: string;
         email: string | null;
         name: string;
@@ -72,7 +74,7 @@ export declare class CustomersController {
         tags: string[];
         assignedSaleId: string | null;
         deletedAt: Date | null;
-    })[]>;
+    }[]>;
     findOne(id: string): Promise<{
         orders: ({
             items: ({
@@ -85,6 +87,7 @@ export declare class CustomersController {
                     price: number;
                     duration: number;
                     status: string;
+                    totalSessions: number;
                 };
             } & {
                 id: string;
@@ -97,9 +100,10 @@ export declare class CustomersController {
             createdAt: Date;
             status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
+            saleId: string;
+            totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
-            totalPrice: number;
             finalPrice: number;
             paidAmount: number;
             qrCode: string | null;
@@ -107,7 +111,7 @@ export declare class CustomersController {
             memoEditable: boolean;
             locked: boolean;
             invoiceIssued: boolean;
-            saleId: string;
+            isLead: boolean;
         })[];
     } & {
         id: string;
@@ -134,6 +138,9 @@ export declare class CustomersController {
         tags: string[];
         assignedSaleId: string | null;
         deletedAt: Date | null;
+    }>;
+    deleteLead(id: string): Promise<{
+        message: string;
     }>;
     remove(id: string): Promise<{
         id: string;

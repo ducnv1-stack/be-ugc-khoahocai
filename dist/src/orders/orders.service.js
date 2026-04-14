@@ -16,19 +16,46 @@ const config_1 = require("@nestjs/config");
 const create_order_dto_1 = require("./dto/create-order.dto");
 const client_1 = require("@prisma/client");
 const audit_service_1 = require("../audit/audit.service");
+const customers_service_1 = require("../customers/customers.service");
+const socket_gateway_1 = require("../socket/socket.gateway");
 let OrdersService = class OrdersService {
     prisma;
     configService;
     auditService;
-    constructor(prisma, configService, auditService) {
+    customersService;
+    socketGateway;
+    constructor(prisma, configService, auditService, customersService, socketGateway) {
         this.prisma = prisma;
         this.configService = configService;
         this.auditService = auditService;
+        this.customersService = customersService;
+        this.socketGateway = socketGateway;
     }
     async create(createOrderDto, saleId) {
-        const { customerId, courseIds, discountType, discountValue, paymentAmount, primaryCourseId } = createOrderDto;
+        const { customerId, customerName, customerPhone, courseIds, discountType, discountValue, paymentAmount, primaryCourseId } = createOrderDto;
+        let targetCustomerId = customerId;
+        let isLead = false;
+        if (!targetCustomerId) {
+            if (!customerPhone)
+                throw new common_1.BadRequestException('Vui lòng cung cấp customerId hoặc customerPhone');
+            let customer = await this.prisma.customer.findUnique({ where: { phone: customerPhone } });
+            if (!customer) {
+                const nextCode = await this.customersService.generateNextCode();
+                customer = await this.prisma.customer.create({
+                    data: {
+                        code: nextCode,
+                        name: customerName || `Khách vãng lai ${customerPhone}`,
+                        phone: customerPhone,
+                        assignedSaleId: saleId,
+                        notes: 'Khách hàng tạo nhanh từ luồng QR'
+                    }
+                });
+            }
+            targetCustomerId = customer.id;
+            isLead = true;
+        }
         const customer = await this.prisma.customer.findUnique({
-            where: { id: customerId },
+            where: { id: targetCustomerId },
         });
         if (!customer)
             throw new common_1.NotFoundException('Không tìm thấy khách hàng');
@@ -55,14 +82,14 @@ let OrdersService = class OrdersService {
         if (!primaryCourse && courses.length > 0) {
             primaryCourse = courses[0];
         }
-        const rawMemo = `${customer.code || 'KH'} ${primaryCourse?.code || 'UGC'} ${customer.phone}`.toUpperCase();
-        const memo = this.removeAccents(rawMemo);
+        const rawMemo = `${customer.code || ''} ${customer.phone} ${primaryCourse?.code || 'UGC'}`.toUpperCase();
+        const memo = this.removeAccents(rawMemo).trim();
         const amountToPay = paymentAmount || finalPrice;
         const qrUrl = this.generateQrUrl(amountToPay, memo);
         const order = await this.prisma.$transaction(async (tx) => {
             const newOrder = await tx.order.create({
                 data: {
-                    customerId,
+                    customerId: targetCustomerId,
                     saleId,
                     totalPrice,
                     discountType: prismaDiscountType,
@@ -73,6 +100,7 @@ let OrdersService = class OrdersService {
                     qrCode: qrUrl,
                     memo,
                     memoEditable: true,
+                    isLead,
                     items: {
                         create: courses.map(c => ({
                             courseId: c.id,
@@ -89,20 +117,23 @@ let OrdersService = class OrdersService {
         });
         await this.auditService.logAction({
             userId: saleId,
-            action: 'CREATE_ORDER',
+            action: isLead ? 'QUICK_CREATE_ORDER' : 'CREATE_ORDER',
             entityType: 'ORDER',
             entityId: order.id,
             newData: {
                 totalPrice: order.totalPrice,
                 finalPrice: order.finalPrice,
+                isLead,
                 courses: courses.map(c => c.code).join(', '),
                 context: {
                     customerName: order.customer?.name,
                     customerPhone: order.customer?.phone,
-                    customerCode: order.customer?.code
                 }
             }
         });
+        if (isLead) {
+            this.socketGateway.emitCustomerCreated(order.customer || order);
+        }
         return order;
     }
     findAll() {
@@ -133,7 +164,7 @@ let OrdersService = class OrdersService {
         const order = await this.findOne(id);
         if (!order)
             throw new common_1.NotFoundException('Đơn hàng không tồn tại');
-        const normalizedMemo = this.removeAccents(newMemo);
+        const normalizedMemo = this.removeAccents(newMemo).toUpperCase().trim();
         const amountToPay = order.finalPrice - order.paidAmount;
         const newQrUrl = this.generateQrUrl(amountToPay, normalizedMemo);
         return this.prisma.order.update({
@@ -312,6 +343,8 @@ exports.OrdersService = OrdersService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         config_1.ConfigService,
-        audit_service_1.AuditService])
+        audit_service_1.AuditService,
+        customers_service_1.CustomersService,
+        socket_gateway_1.SocketGateway])
 ], OrdersService);
 //# sourceMappingURL=orders.service.js.map

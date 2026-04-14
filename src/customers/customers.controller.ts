@@ -39,6 +39,12 @@ export class CustomersController {
     return this.customersService.update(id, updateCustomerDto, req.user);
   }
 
+  @Delete(':id/lead')
+  @RequirePermissions('customers.manage')
+  deleteLead(@Param('id') id: string) {
+    return this.customersService.deleteLeadCustomer(id);
+  }
+
   @Delete(':id')
   @RequirePermissions('customers.manage')
   remove(@Param('id') id: string) {

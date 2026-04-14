@@ -12,12 +12,13 @@ const payments_service_1 = require("./payments.service");
 const payments_controller_1 = require("./payments.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const notifications_module_1 = require("../notifications/notifications.module");
+const audit_module_1 = require("../audit/audit.module");
 let PaymentsModule = class PaymentsModule {
 };
 exports.PaymentsModule = PaymentsModule;
 exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule],
+        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule, audit_module_1.AuditModule],
         controllers: [payments_controller_1.PaymentsController],
         providers: [payments_service_1.PaymentsService],
     })

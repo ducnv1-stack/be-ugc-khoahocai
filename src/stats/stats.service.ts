@@ -12,7 +12,7 @@ export class StatsService {
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Total customers (not deleted)
+    // 1. Khách hàng
     const totalCustomers = await this.prisma.customer.count({ where: { deletedAt: null } });
     const lastMonthCustomers = await this.prisma.customer.count({
       where: { deletedAt: null, createdAt: { lt: startOfMonth } }
@@ -21,33 +21,45 @@ export class StatsService {
       ? ((totalCustomers - lastMonthCustomers) / lastMonthCustomers * 100).toFixed(1)
       : '0';
 
-    // New orders today
+    // 2. Đơn hàng (Orders today)
     const ordersToday = await this.prisma.order.count({
       where: { createdAt: { gte: startOfToday } }
     });
-    const ordersYesterday = await this.prisma.order.count({
-      where: { createdAt: { gte: new Date(startOfToday.getTime() - 86400000), lt: startOfToday } }
-    });
-    const orderGrowth = ordersYesterday > 0
-      ? ((ordersToday - ordersYesterday) / ordersYesterday * 100).toFixed(1)
-      : '0';
 
-    // Revenue this month (paidAmount sum)
-    const revenueThisMonthAgg = await this.prisma.order.aggregate({
+    // 3. Tiền thực thu (Cashflow) - Tính dựa trên số tiền khách đã đóng
+    const cashflowThisMonthAgg = await this.prisma.order.aggregate({
       where: { createdAt: { gte: startOfMonth } },
       _sum: { paidAmount: true }
     });
-    const revenueLastMonthAgg = await this.prisma.order.aggregate({
-      where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
-      _sum: { paidAmount: true }
-    });
-    const revenueThisMonth = revenueThisMonthAgg._sum.paidAmount || 0;
-    const revenueLastMonth = revenueLastMonthAgg._sum.paidAmount || 0;
-    const revenueGrowth = revenueLastMonth > 0
-      ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1)
-      : '0';
+    const cashflowThisMonth = cashflowThisMonthAgg._sum.paidAmount || 0;
 
-    // Conversion rate: PAID orders / total orders this month
+    // 4. Doanh thu thực tế (Revenue) - Tính dựa trên số buổi học viên đã điểm danh
+    // Công thức: Doanh thu = Sum( (Số buổi đã học / Tổng buổi khóa) * Giá sau giảm giá )
+    // Để đơn giản và chính xác, ta lấy giá trị từng buổi * số buổi đã học
+    const revenueStats = await this.prisma.$queryRaw`
+      SELECT 
+        SUM(CASE WHEN c."totalSessions" > 0 THEN (o."finalPrice" / c."totalSessions") ELSE 0 END) as "realRevenue"
+      FROM "ScheduleStudent" ss
+      JOIN "Schedule" s ON ss."scheduleId" = s.id
+      JOIN "Course" c ON s."courseId" = c.id
+      JOIN "Order" o ON o."customerId" = ss."customerId"
+      JOIN "OrderItem" oi ON oi."orderId" = o.id AND oi."courseId" = c.id
+      WHERE ss."isAttended" = true 
+      AND s."startTime" >= ${startOfMonth}
+    `;
+    const realRevenue = (revenueStats as any)[0]?.realRevenue || 0;
+
+    // 5. Chi phí (Expenses)
+    const expensesThisMonthAgg = await this.prisma.systemExpense.aggregate({
+      where: { date: { gte: startOfMonth } },
+      _sum: { amount: true }
+    });
+    const expensesThisMonth = expensesThisMonthAgg._sum.amount || 0;
+
+    // 6. Lợi nhuận (Profit) = Doanh thu thực tế - Chi phí
+    const profitThisMonth = realRevenue - expensesThisMonth;
+
+    // Conversion rate
     const totalOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth } } });
     const paidOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth }, status: 'PAID' } });
     const conversionRate = totalOrdersThisMonth > 0
@@ -58,9 +70,10 @@ export class StatsService {
       totalCustomers,
       customerGrowth: parseFloat(customerGrowth),
       ordersToday,
-      orderGrowth: parseFloat(orderGrowth),
-      revenueThisMonth,
-      revenueGrowth: parseFloat(revenueGrowth),
+      totalCashflow: cashflowThisMonth, // Tiền thu trước
+      realRevenue: realRevenue,       // Doanh thu thực tế (đã dạy)
+      totalExpenses: expensesThisMonth,
+      netProfit: profitThisMonth,
       conversionRate: parseFloat(conversionRate),
     };
   }
@@ -68,20 +81,28 @@ export class StatsService {
   async getRevenueChart(year?: number) {
     const targetYear = year || new Date().getFullYear();
 
-    // Monthly revenue for the year
     const months = await Promise.all(
       Array.from({ length: 12 }, async (_, i) => {
         const start = new Date(targetYear, i, 1);
         const end = new Date(targetYear, i + 1, 0, 23, 59, 59);
-        const agg = await this.prisma.order.aggregate({
+        
+        const cashAgg = await this.prisma.order.aggregate({
           where: { createdAt: { gte: start, lte: end } },
           _sum: { paidAmount: true },
-          _count: { id: true },
+          _count: { id: true }
         });
+
+        const expAgg = await this.prisma.systemExpense.aggregate({
+          where: { date: { gte: start, lte: end } },
+          _sum: { amount: true }
+        });
+
         return {
           month: i + 1,
-          revenue: agg._sum.paidAmount || 0,
-          orders: agg._count.id,
+          cashflow: cashAgg._sum.paidAmount || 0,
+          revenue: cashAgg._sum.paidAmount || 0,
+          orders: cashAgg._count.id || 0,
+          expenses: expAgg._sum.amount || 0,
         };
       })
     );

@@ -3,7 +3,9 @@ export declare enum DiscountType {
     FIXED = "FIXED"
 }
 export declare class CreateOrderDto {
-    customerId: string;
+    customerId?: string;
+    customerName?: string;
+    customerPhone?: string;
     courseIds: string[];
     discountType?: DiscountType;
     discountValue?: number;

@@ -33,25 +33,29 @@ let StatsService = class StatsService {
         const ordersToday = await this.prisma.order.count({
             where: { createdAt: { gte: startOfToday } }
         });
-        const ordersYesterday = await this.prisma.order.count({
-            where: { createdAt: { gte: new Date(startOfToday.getTime() - 86400000), lt: startOfToday } }
-        });
-        const orderGrowth = ordersYesterday > 0
-            ? ((ordersToday - ordersYesterday) / ordersYesterday * 100).toFixed(1)
-            : '0';
-        const revenueThisMonthAgg = await this.prisma.order.aggregate({
+        const cashflowThisMonthAgg = await this.prisma.order.aggregate({
             where: { createdAt: { gte: startOfMonth } },
             _sum: { paidAmount: true }
         });
-        const revenueLastMonthAgg = await this.prisma.order.aggregate({
-            where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
-            _sum: { paidAmount: true }
+        const cashflowThisMonth = cashflowThisMonthAgg._sum.paidAmount || 0;
+        const revenueStats = await this.prisma.$queryRaw `
+      SELECT 
+        SUM(CASE WHEN c."totalSessions" > 0 THEN (o."finalPrice" / c."totalSessions") ELSE 0 END) as "realRevenue"
+      FROM "ScheduleStudent" ss
+      JOIN "Schedule" s ON ss."scheduleId" = s.id
+      JOIN "Course" c ON s."courseId" = c.id
+      JOIN "Order" o ON o."customerId" = ss."customerId"
+      JOIN "OrderItem" oi ON oi."orderId" = o.id AND oi."courseId" = c.id
+      WHERE ss."isAttended" = true 
+      AND s."startTime" >= ${startOfMonth}
+    `;
+        const realRevenue = revenueStats[0]?.realRevenue || 0;
+        const expensesThisMonthAgg = await this.prisma.systemExpense.aggregate({
+            where: { date: { gte: startOfMonth } },
+            _sum: { amount: true }
         });
-        const revenueThisMonth = revenueThisMonthAgg._sum.paidAmount || 0;
-        const revenueLastMonth = revenueLastMonthAgg._sum.paidAmount || 0;
-        const revenueGrowth = revenueLastMonth > 0
-            ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1)
-            : '0';
+        const expensesThisMonth = expensesThisMonthAgg._sum.amount || 0;
+        const profitThisMonth = realRevenue - expensesThisMonth;
         const totalOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth } } });
         const paidOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth }, status: 'PAID' } });
         const conversionRate = totalOrdersThisMonth > 0
@@ -61,9 +65,10 @@ let StatsService = class StatsService {
             totalCustomers,
             customerGrowth: parseFloat(customerGrowth),
             ordersToday,
-            orderGrowth: parseFloat(orderGrowth),
-            revenueThisMonth,
-            revenueGrowth: parseFloat(revenueGrowth),
+            totalCashflow: cashflowThisMonth,
+            realRevenue: realRevenue,
+            totalExpenses: expensesThisMonth,
+            netProfit: profitThisMonth,
             conversionRate: parseFloat(conversionRate),
         };
     }
@@ -72,15 +77,21 @@ let StatsService = class StatsService {
         const months = await Promise.all(Array.from({ length: 12 }, async (_, i) => {
             const start = new Date(targetYear, i, 1);
             const end = new Date(targetYear, i + 1, 0, 23, 59, 59);
-            const agg = await this.prisma.order.aggregate({
+            const cashAgg = await this.prisma.order.aggregate({
                 where: { createdAt: { gte: start, lte: end } },
                 _sum: { paidAmount: true },
-                _count: { id: true },
+                _count: { id: true }
+            });
+            const expAgg = await this.prisma.systemExpense.aggregate({
+                where: { date: { gte: start, lte: end } },
+                _sum: { amount: true }
             });
             return {
                 month: i + 1,
-                revenue: agg._sum.paidAmount || 0,
-                orders: agg._count.id,
+                cashflow: cashAgg._sum.paidAmount || 0,
+                revenue: cashAgg._sum.paidAmount || 0,
+                orders: cashAgg._count.id || 0,
+                expenses: expAgg._sum.amount || 0,
             };
         }));
         return { year: targetYear, months };

@@ -2,13 +2,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { SocketGateway } from '../socket/socket.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 export declare class PaymentsService {
     private prisma;
     private configService;
     private socketGateway;
     private notificationsService;
+    private auditService;
     private readonly logger;
-    constructor(prisma: PrismaService, configService: ConfigService, socketGateway: SocketGateway, notificationsService: NotificationsService);
+    constructor(prisma: PrismaService, configService: ConfigService, socketGateway: SocketGateway, notificationsService: NotificationsService, auditService: AuditService);
     handleSePayWebhook(payload: any, authHeader: string): Promise<{
         status: string;
         message: string;
@@ -49,6 +51,7 @@ export declare class PaymentsService {
                     price: number;
                     duration: number;
                     status: string;
+                    totalSessions: number;
                 };
             } & {
                 id: string;
@@ -61,9 +64,10 @@ export declare class PaymentsService {
             createdAt: Date;
             status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
+            saleId: string;
+            totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
-            totalPrice: number;
             finalPrice: number;
             paidAmount: number;
             qrCode: string | null;
@@ -71,14 +75,14 @@ export declare class PaymentsService {
             memoEditable: boolean;
             locked: boolean;
             invoiceIssued: boolean;
-            saleId: string;
+            isLead: boolean;
         };
     } & {
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
-        amount: number;
         orderId: string;
+        amount: number;
         transactionCode: string | null;
         rawData: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;

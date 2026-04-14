@@ -7,8 +7,16 @@ export enum DiscountType {
 
 export class CreateOrderDto {
   @IsString()
-  @IsNotEmpty()
-  customerId: string;
+  @IsOptional()
+  customerId?: string;
+
+  @IsString()
+  @IsOptional()
+  customerName?: string;
+
+  @IsString()
+  @IsOptional()
+  customerPhone?: string;
 
   @IsArray()
   @IsString({ each: true })

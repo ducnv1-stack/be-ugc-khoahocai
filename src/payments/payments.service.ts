@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { OrderStatus } from '@prisma/client';
 import { SocketGateway } from '../socket/socket.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class PaymentsService {
@@ -14,6 +15,7 @@ export class PaymentsService {
     private configService: ConfigService,
     private socketGateway: SocketGateway,
     private notificationsService: NotificationsService,
+    private auditService: AuditService,
   ) {}
 
   async handleSePayWebhook(payload: any, authHeader: string) {
@@ -47,22 +49,20 @@ export class PaymentsService {
       throw new UnauthorizedException('Invalid Webhook Secret');
     }
 
-    const { content, description, transferAmount, code, referenceCode, id } = payload;
+    const { content, description, transferAmount, code, referenceCode, id, accountName } = payload;
     const memo = content || description || '';
     const transactionCode = `${code || referenceCode || id || ''}`;
     
-    this.logger.log(`Received payment of ${transferAmount} with memo: "${memo}"`);
+    this.logger.log(`Received payment of ${transferAmount} with memo: "${memo}" from ${accountName || 'Unknown'}`);
 
     // Chuẩn hóa nội dung nhận được (Bỏ dấu) trước khi tìm kiếm
     const normalizedContent = this.removeAccents(memo);
 
-    // 2. TÌM ĐƠN HÀNG (2 Bước)
+    // 2. TÌM ĐƠN HÀNG (STRICT MATCHING)
+    // Cấu trúc mong đợi: [Mã KH] [SĐT] [Mã Khóa]
     let order: any = null;
-
-    // Bước A: Tìm kiếm chính xác theo trường Memo
-    order = await this.prisma.order.findFirst({
+    const pendingOrders = await this.prisma.order.findMany({
         where: {
-            memo: { equals: normalizedContent, mode: 'insensitive' },
             status: { in: [OrderStatus.PENDING, OrderStatus.PARTIALLY_PAID] }
         },
         include: { 
@@ -71,63 +71,54 @@ export class PaymentsService {
         }
     });
 
-    // Bước B: SMART MATCH (Khớp một phần) - Nếu không khớp 100%, tìm theo Mã Khách Hàng hoặc nội dung
-    if (!order) {
-        const pendingOrders = await this.prisma.order.findMany({
-            where: {
-                status: { in: [OrderStatus.PENDING, OrderStatus.PARTIALLY_PAID] }
-            },
-            include: { 
-                customer: true,
-                items: { include: { course: true } }
-            }
-        });
+    // Tìm kiếm khớp chính xác 3 yếu tố
+    const findStrictMatch = () => {
+        for (const o of pendingOrders) {
+            // Chuẩn hóa mã khách hàng và mã khóa học để so sánh không dấu
+            const normalizedCustCode = this.removeAccents(o.customer.code || '').toUpperCase();
+            
+            const hasCode = o.customer.code && normalizedContent.toUpperCase().includes(normalizedCustCode);
+            const hasPhone = o.customer.phone && normalizedContent.includes(o.customer.phone);
+            const hasCourseCode = o.items.some(item => {
+                const normalizedItemCourseCode = this.removeAccents(item.course.code || '').toUpperCase();
+                return normalizedItemCourseCode && normalizedContent.toUpperCase().includes(normalizedItemCourseCode);
+            });
 
-        // Ưu tiên 1: Tìm theo Mã Khách Hàng (Customer Code) xuất hiện trong nội dung
-        const matchesByCode = pendingOrders.filter(o => 
-            o.customer.code && normalizedContent.toUpperCase().includes(o.customer.code.toUpperCase())
-        );
-
-        if (matchesByCode.length > 0) {
-            // Nếu khách hàng có nhiều đơn, ưu tiên đơn có số tiền khớp nhất hoặc đơn gần nhất
-            order = matchesByCode.find(o => o.finalPrice - o.paidAmount === transferAmount) || matchesByCode[0];
-            this.logger.log(`Found order by Customer Code "${order.customer.code}" for customer ${order.customer.name}`);
-        } else {
-            // Ưu tiên 2: Tìm theo chuỗi Memo dài nhất khớp (Logic cũ)
-            const substringMatches = pendingOrders
-                .filter(o => o.memo && normalizedContent.toLowerCase().includes(this.removeAccents(o.memo).toLowerCase()))
-                .sort((a, b) => (b.memo?.length || 0) - (a.memo?.length || 0));
-
-            if (substringMatches.length > 0) {
-                order = substringMatches[0];
-                this.logger.log(`Smart matched memo "${order.memo}" inside "${normalizedContent}"`);
+            if (hasCode && hasPhone && hasCourseCode) {
+                return o;
             }
         }
-    }
+        return null;
+    };
 
-    // Bước C: Nếu vẫn không thấy, fallback sang logic Tách MãKhóa + SĐT
-    if (!order) {
-        const parts = normalizedContent.split(' ').filter(p => p.trim() !== '');
-        if (parts.length >= 2) {
-            const courseCode = parts[0].toUpperCase();
-            const phone = parts[parts.length - 1];
+    order = findStrictMatch();
 
-            order = await this.prisma.order.findFirst({
-                where: {
-                    status: { in: [OrderStatus.PENDING, OrderStatus.PARTIALLY_PAID] },
-                    customer: { phone: { contains: phone } },
-                    items: {
-                        some: {
-                            course: { code: { equals: courseCode, mode: 'insensitive' } }
-                        }
-                    }
-                },
-                include: { 
-                    customer: true,
-                    items: { include: { course: true } }
+    if (order) {
+        this.logger.log(`Strict match found for order ${order.id} (Customer: ${order.customer.code}, Phone: ${order.customer.phone})`);
+    } else {
+        this.logger.warn(`No strict match for memo: "${normalizedContent}"`);
+        
+        // Ghi Audit Log cho trường hợp không khớp (cần duyệt tay)
+        const systemAdmin = await this.prisma.user.findFirst({
+            where: { role: { name: 'ADMIN' } }
+        });
+        
+        if (systemAdmin) {
+            await this.auditService.logAction({
+                userId: systemAdmin.id,
+                action: 'PAYMENT_MISMATCH',
+                entityType: 'WEBHOOK',
+                entityId: log.id,
+                newData: {
+                    memo: normalizedContent,
+                    amount: transferAmount,
+                    reason: 'Nội dung không khớp đủ 3 yếu tố [Mã KH], [SĐT], [Mã Khóa]'
                 }
             });
         }
+
+        await updateLog('MANUAL_REVIEW');
+        return { status: 'manual_review', message: 'Strict matching failed, manual review required' };
     }
 
     if (!order) {
@@ -138,6 +129,8 @@ export class PaymentsService {
 
     // 3. Cập nhật thanh toán (Atomic Transaction)
     try {
+        let finalCustomerName = order.customer.name;
+
         await this.prisma.$transaction(async (tx) => {
           // Lưu bản ghi giao dịch
           await tx.payment.create({
@@ -157,19 +150,28 @@ export class PaymentsService {
             where: { id: order.id },
             data: {
               paidAmount: newPaidAmount,
-              status: isFullPaid ? OrderStatus.PAID : OrderStatus.PARTIALLY_PAID
+              status: isFullPaid ? OrderStatus.PAID : OrderStatus.PARTIALLY_PAID,
+              isLead: false
             }
           });
+
+          // Cập nhật tên khách hàng nếu hiện tại là tên tạm
+          if (accountName && (order.customer.name.includes('Khách vãng lai') || order.customer.name === order.customer.phone)) {
+            finalCustomerName = accountName.toUpperCase();
+            await tx.customer.update({
+              where: { id: order.customerId },
+              data: { name: finalCustomerName }
+            });
+          }
         });
         
         await updateLog('SUCCESS');
-        this.logger.log(`Successfully updated order ${order.id} for customer ${order.customer.name}`);
         
-        // Emit event to refresh customer data/orders in UI
+        // Emit event to refresh UI
         this.socketGateway.emitPaymentReceived({
           orderId: order.id,
           customerId: order.customerId,
-          customerName: order.customer.name,
+          customerName: finalCustomerName,
           amount: transferAmount
         });
 
@@ -177,7 +179,7 @@ export class PaymentsService {
         const courseNames = order.items.map((i: any) => i.course.name).join(', ');
         await this.notificationsService.create({
           title: 'Thanh toán thành công',
-          message: `Khách: ${order.customer.name} (${order.customer.phone}) - Khóa: ${courseNames} - Số tiền: ${new Intl.NumberFormat('vi-VN').format(transferAmount)}đ`,
+          message: `Khách: ${finalCustomerName} - Khóa: ${courseNames} - Số tiền: ${new Intl.NumberFormat('vi-VN').format(transferAmount)}đ`,
           type: 'SUCCESS'
         });
 

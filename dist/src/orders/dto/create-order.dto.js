@@ -18,6 +18,8 @@ var DiscountType;
 })(DiscountType || (exports.DiscountType = DiscountType = {}));
 class CreateOrderDto {
     customerId;
+    customerName;
+    customerPhone;
     courseIds;
     discountType;
     discountValue;
@@ -27,9 +29,19 @@ class CreateOrderDto {
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "customerId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "customerName", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "customerPhone", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsString)({ each: true }),

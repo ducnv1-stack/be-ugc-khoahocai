@@ -9,4 +9,5 @@ export declare class SocketGateway implements OnGatewayInit, OnGatewayConnection
     emitPaymentReceived(data: any): void;
     emitNotificationReceived(data: any): void;
     emitWebhookLogUpdated(data: any): void;
+    emitCustomerCreated(data: any): void;
 }

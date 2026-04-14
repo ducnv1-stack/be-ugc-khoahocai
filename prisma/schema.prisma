@@ -94,9 +94,10 @@ model Course {
   code        String   @unique
   price       Float
   duration    Int // Thời lượng học (phút)
-  description String?
-  status      String   @default("ACTIVE")
-  createdAt   DateTime @default(now())
+  totalSessions Int      @default(0) // Tổng số buổi học của khóa
+  description   String?
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
 
   orderItems OrderItem[]
   schedules  Schedule[]
@@ -118,6 +119,7 @@ model Order {
   memoEditable  Boolean       @default(true) 
   locked        Boolean       @default(false) // Khóa đơn hàng sau khi có QR
   invoiceIssued Boolean       @default(false) // Đã xuất hóa đơn hay chưa
+  isLead        Boolean       @default(false) // Phân biệt đơn hàng tạo nhanh
   createdAt     DateTime      @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id])
@@ -171,8 +173,10 @@ model Schedule {
   instructorId  String
   startTime     DateTime
   endTime       DateTime
+  maxCapacity   Int      @default(10) // Sĩ số tối đa của buổi học
   meetingUrl    String? // Link Google Meet (Nhập tay GĐ1)
   googleEventId String? // Để dành cho GĐ sau
+  recurringGroupId String? // Để quản lý lịch học theo chuỗi (2-4-6 hàng tuần)
   createdAt     DateTime @default(now())
 
   course     Course @relation(fields: [courseId], references: [id])
@@ -292,4 +296,16 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+}
+
+// --- Quản lý Chi phí ---
+model SystemExpense {
+  id          String   @id @default(uuid())
+  name        String
+  amount      Float
+  type        String // "ADVERTISING", "OPERATIONS", "EQUIPMENT"
+  notes       String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

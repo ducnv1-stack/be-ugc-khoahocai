@@ -41,6 +41,9 @@ let CustomersController = class CustomersController {
     update(id, updateCustomerDto, req) {
         return this.customersService.update(id, updateCustomerDto, req.user);
     }
+    deleteLead(id) {
+        return this.customersService.deleteLeadCustomer(id);
+    }
     remove(id) {
         return this.customersService.softDelete(id);
     }
@@ -83,6 +86,14 @@ __decorate([
     __metadata("design:paramtypes", [String, update_customer_dto_1.UpdateCustomerDto, Object]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id/lead'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "deleteLead", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, permissions_decorator_1.RequirePermissions)('customers.manage'),

@@ -13,20 +13,17 @@ exports.CustomersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const audit_service_1 = require("../audit/audit.service");
+const socket_gateway_1 = require("../socket/socket.gateway");
 let CustomersService = class CustomersService {
     prisma;
     auditService;
-    constructor(prisma, auditService) {
+    socketGateway;
+    constructor(prisma, auditService, socketGateway) {
         this.prisma = prisma;
         this.auditService = auditService;
+        this.socketGateway = socketGateway;
     }
-    async create(createCustomerDto, userId) {
-        const existing = await this.prisma.customer.findUnique({
-            where: { phone: createCustomerDto.phone },
-        });
-        if (existing) {
-            throw new common_1.ConflictException('Số điện thoại này đã tồn tại trong danh sách khách hàng');
-        }
+    async generateNextCode() {
         const lastCustomer = await this.prisma.customer.findFirst({
             where: { code: { startsWith: 'KH' } },
             orderBy: { code: 'desc' }
@@ -36,6 +33,16 @@ let CustomersService = class CustomersService {
             const lastNum = parseInt(lastCustomer.code.replace('KH', ''), 10);
             nextCode = `KH${lastNum + 1}`;
         }
+        return nextCode;
+    }
+    async create(createCustomerDto, userId) {
+        const existing = await this.prisma.customer.findUnique({
+            where: { phone: createCustomerDto.phone },
+        });
+        if (existing) {
+            throw new common_1.ConflictException('Số điện thoại này đã tồn tại trong danh sách khách hàng');
+        }
+        const nextCode = await this.generateNextCode();
         const newCustomer = await this.prisma.customer.create({
             data: {
                 ...createCustomerDto,
@@ -57,11 +64,12 @@ let CustomersService = class CustomersService {
                 code: newCustomer.code
             }
         });
+        this.socketGateway.emitCustomerCreated(newCustomer);
         return newCustomer;
     }
     async findAll(query) {
         const { search, skip = 0, take = 50 } = query || {};
-        return this.prisma.customer.findMany({
+        const customers = await this.prisma.customer.findMany({
             where: {
                 deletedAt: null,
                 OR: search ? [
@@ -86,6 +94,10 @@ let CustomersService = class CustomersService {
             skip,
             take,
         });
+        return customers.map(c => ({
+            ...c,
+            isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
+        }));
     }
     async findOne(id) {
         const customer = await this.prisma.customer.findUnique({
@@ -130,11 +142,35 @@ let CustomersService = class CustomersService {
             data: { deletedAt: new Date() },
         });
     }
+    async deleteLeadCustomer(id) {
+        const customer = await this.prisma.customer.findUnique({
+            where: { id },
+            include: { orders: true }
+        });
+        if (!customer)
+            throw new common_1.NotFoundException('Không tìm thấy khách hàng');
+        const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
+        if (hasPaidOrder) {
+            throw new common_1.BadRequestException('Không thể xóa khách hàng đã có lịch sử thanh toán');
+        }
+        await this.prisma.$transaction(async (tx) => {
+            for (const order of customer.orders) {
+                await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+                await tx.payment.deleteMany({ where: { orderId: order.id } });
+                await tx.orderHistory.deleteMany({ where: { orderId: order.id } });
+                await tx.refund.deleteMany({ where: { orderId: order.id } });
+                await tx.order.delete({ where: { id: order.id } });
+            }
+            await tx.customer.delete({ where: { id } });
+        });
+        return { message: 'Đã xóa khách hàng tạm thành công' };
+    }
 };
 exports.CustomersService = CustomersService;
 exports.CustomersService = CustomersService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        audit_service_1.AuditService])
+        audit_service_1.AuditService,
+        socket_gateway_1.SocketGateway])
 ], CustomersService);
 //# sourceMappingURL=customers.service.js.map

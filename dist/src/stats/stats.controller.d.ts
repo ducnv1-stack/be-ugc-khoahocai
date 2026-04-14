@@ -6,17 +6,20 @@ export declare class StatsController {
         totalCustomers: number;
         customerGrowth: number;
         ordersToday: number;
-        orderGrowth: number;
-        revenueThisMonth: number;
-        revenueGrowth: number;
+        totalCashflow: number;
+        realRevenue: any;
+        totalExpenses: number;
+        netProfit: number;
         conversionRate: number;
     }>;
     getRevenueChart(year?: string): Promise<{
         year: number;
         months: {
             month: number;
+            cashflow: number;
             revenue: number;
             orders: number;
+            expenses: number;
         }[];
     }>;
     getTopCourses(limit?: string): Promise<{
@@ -48,9 +51,10 @@ export declare class StatsController {
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -58,6 +62,6 @@ export declare class StatsController {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     })[]>;
 }

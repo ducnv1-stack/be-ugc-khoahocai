@@ -3,23 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { AuditService } from '../audit/audit.service';
+import { SocketGateway } from '../socket/socket.gateway';
 
 @Injectable()
 export class CustomersService {
   constructor(
     private prisma: PrismaService,
-    private auditService: AuditService
+    private auditService: AuditService,
+    private socketGateway: SocketGateway,
   ) {}
 
-  async create(createCustomerDto: CreateCustomerDto, userId: string) {
-    const existing = await this.prisma.customer.findUnique({
-      where: { phone: createCustomerDto.phone },
-    });
-    
-    if (existing) {
-      throw new ConflictException('Số điện thoại này đã tồn tại trong danh sách khách hàng');
-    }
-
+  async generateNextCode() {
     // Tự động tạo mã khách hàng (KHxxxx)
     const lastCustomer = await this.prisma.customer.findFirst({
       where: { code: { startsWith: 'KH' } },
@@ -31,6 +25,19 @@ export class CustomersService {
       const lastNum = parseInt(lastCustomer.code.replace('KH', ''), 10);
       nextCode = `KH${lastNum + 1}`;
     }
+    return nextCode;
+  }
+
+  async create(createCustomerDto: CreateCustomerDto, userId: string) {
+    const existing = await this.prisma.customer.findUnique({
+      where: { phone: createCustomerDto.phone },
+    });
+    
+    if (existing) {
+      throw new ConflictException('Số điện thoại này đã tồn tại trong danh sách khách hàng');
+    }
+
+    const nextCode = await this.generateNextCode();
 
     const newCustomer = await this.prisma.customer.create({
       data: {
@@ -42,7 +49,7 @@ export class CustomersService {
         assignedSale: { select: { name: true } }
       }
     });
-
+    
     await this.auditService.logAction({
       userId,
       action: 'CREATE_CUSTOMER',
@@ -55,13 +62,16 @@ export class CustomersService {
       }
     });
 
+    // Emit realtime event
+    this.socketGateway.emitCustomerCreated(newCustomer);
+
     return newCustomer;
   }
 
   async findAll(query?: { search?: string; skip?: number; take?: number }) {
     const { search, skip = 0, take = 50 } = query || {};
     
-    return this.prisma.customer.findMany({
+    const customers = await this.prisma.customer.findMany({
       where: {
         deletedAt: null,
         OR: search ? [
@@ -86,6 +96,12 @@ export class CustomersService {
       skip,
       take,
     });
+
+    // Tính field isLead: Khách tạm nếu CHƯA có đơn hàng nào HOẶC tất cả đơn đều chưa thanh toán (PAID)
+    return customers.map(c => ({
+      ...c,
+      isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
+    }));
   }
 
   async findOne(id: string) {
@@ -138,5 +154,35 @@ export class CustomersService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+  }
+
+  // Xóa cứng khách tạm (chỉ dùng khi isLead và chưa thanh toán)
+  async deleteLeadCustomer(id: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+      include: { orders: true }
+    });
+
+    if (!customer) throw new NotFoundException('Không tìm thấy khách hàng');
+
+    // Kiểm tra an toàn: không xóa nếu đã có thanh toán
+    const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
+    if (hasPaidOrder) {
+      throw new BadRequestException('Không thể xóa khách hàng đã có lịch sử thanh toán');
+    }
+
+    // Xóa cứng: Xóa đơn hàng liên quan trước
+    await this.prisma.$transaction(async (tx) => {
+      for (const order of customer.orders) {
+        await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+        await tx.payment.deleteMany({ where: { orderId: order.id } });
+        await tx.orderHistory.deleteMany({ where: { orderId: order.id } });
+        await tx.refund.deleteMany({ where: { orderId: order.id } });
+        await tx.order.delete({ where: { id: order.id } });
+      }
+      await tx.customer.delete({ where: { id } });
+    });
+
+    return { message: 'Đã xóa khách hàng tạm thành công' };
   }
 }

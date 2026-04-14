@@ -3,11 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { DiscountType } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { CustomersService } from '../customers/customers.service';
+import { SocketGateway } from '../socket/socket.gateway';
 export declare class OrdersService {
     private prisma;
     private configService;
     private auditService;
-    constructor(prisma: PrismaService, configService: ConfigService, auditService: AuditService);
+    private customersService;
+    private socketGateway;
+    constructor(prisma: PrismaService, configService: ConfigService, auditService: AuditService, customersService: CustomersService, socketGateway: SocketGateway);
     create(createOrderDto: CreateOrderDto, saleId: string): Promise<any>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<({
         customer: {
@@ -27,6 +31,7 @@ export declare class OrdersService {
                 price: number;
                 duration: number;
                 status: string;
+                totalSessions: number;
             };
         } & {
             id: string;
@@ -39,9 +44,10 @@ export declare class OrdersService {
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -49,15 +55,15 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     })[]>;
     findOne(id: string): Promise<{
         payments: {
             id: string;
             createdAt: Date;
             status: import(".prisma/client").$Enums.PaymentStatus;
-            amount: number;
             orderId: string;
+            amount: number;
             transactionCode: string | null;
             rawData: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
@@ -87,6 +93,7 @@ export declare class OrdersService {
                 price: number;
                 duration: number;
                 status: string;
+                totalSessions: number;
             };
         } & {
             id: string;
@@ -99,9 +106,10 @@ export declare class OrdersService {
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -109,16 +117,17 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     updateMemo(id: string, newMemo: string): Promise<{
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -126,7 +135,7 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     updatePrice(id: string, data: {
         discountType?: DiscountType;
@@ -137,9 +146,10 @@ export declare class OrdersService {
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -147,16 +157,17 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     updatePaidAmount(id: string, paidAmount: number, userId: string): Promise<{
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -164,16 +175,17 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     updateInvoiceStatus(id: string, invoiceIssued: boolean, userId: string): Promise<{
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -181,16 +193,17 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     remove(id: string, userId: string): Promise<{
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        saleId: string;
+        totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;
         discountValue: number | null;
-        totalPrice: number;
         finalPrice: number;
         paidAmount: number;
         qrCode: string | null;
@@ -198,7 +211,7 @@ export declare class OrdersService {
         memoEditable: boolean;
         locked: boolean;
         invoiceIssued: boolean;
-        saleId: string;
+        isLead: boolean;
     }>;
     private removeAccents;
     private generateQrUrl;

@@ -15,6 +15,8 @@ import { SocketModule } from './socket/socket.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuditModule } from './audit/audit.module';
 import { StatsModule } from './stats/stats.module';
+import { ExpensesModule } from './expenses/expenses.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { StatsModule } from './stats/stats.module';
     NotificationsModule,
     AuditModule,
     StatsModule,
+    ExpensesModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
