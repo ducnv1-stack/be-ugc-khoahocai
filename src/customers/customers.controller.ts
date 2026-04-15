@@ -17,23 +17,39 @@ export class CustomersController {
     return this.customersService.create(createCustomerDto, req.user.id);
   }
 
+  @Get('stats')
+  @RequirePermissions('customers.view', 'customers.manage')
+  getStats() {
+    return this.customersService.getStats();
+  }
+
   @Get()
   @RequirePermissions('customers.view', 'customers.manage')
-  findAll(@Query('search') search?: string, @Query('skip') skip?: string, @Query('take') take?: string) {
+  findAll(
+    @Query('search') search?: string, 
+    @Query('page') page?: string, 
+    @Query('limit') limit?: string,
+    @Query('type') type?: 'lead' | 'regular' | 'all'
+  ) {
     return this.customersService.findAll({
       search,
-      skip: skip ? parseInt(skip) : undefined,
-      take: take ? parseInt(take) : undefined,
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      type,
     });
   }
 
   @Get('trash')
   @RequirePermissions('customers.manage')
-  findAllTrash(@Query('search') search?: string, @Query('skip') skip?: string, @Query('take') take?: string) {
+  findAllTrash(
+    @Query('search') search?: string, 
+    @Query('page') page?: string, 
+    @Query('limit') limit?: string
+  ) {
     return this.customersService.findAll({
       search,
-      skip: skip ? parseInt(skip) : undefined,
-      take: take ? parseInt(take) : undefined,
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
       onlyDeleted: true,
     });
   }

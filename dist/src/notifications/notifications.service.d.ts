@@ -13,27 +13,27 @@ export declare class NotificationsService {
         id: string;
         createdAt: Date;
         userId: string | null;
+        type: string;
         title: string;
         message: string;
-        type: string;
         isRead: boolean;
     }>;
     findAll(): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
+        type: string;
         title: string;
         message: string;
-        type: string;
         isRead: boolean;
     }[]>;
     markAsRead(id: string): Promise<{
         id: string;
         createdAt: Date;
         userId: string | null;
+        type: string;
         title: string;
         message: string;
-        type: string;
         isRead: boolean;
     }>;
     markAllAsRead(): Promise<import(".prisma/client").Prisma.BatchPayload>;

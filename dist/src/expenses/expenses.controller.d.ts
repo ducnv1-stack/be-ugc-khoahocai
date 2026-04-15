@@ -9,8 +9,8 @@ export declare class ExpensesController {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }>;
     findAll(): Promise<{
@@ -19,8 +19,8 @@ export declare class ExpensesController {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }[]>;
     getStats(startDate?: string, endDate?: string): Promise<{
@@ -34,8 +34,8 @@ export declare class ExpensesController {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }>;
 }

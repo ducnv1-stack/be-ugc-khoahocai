@@ -28,18 +28,22 @@ let CustomersController = class CustomersController {
     create(createCustomerDto, req) {
         return this.customersService.create(createCustomerDto, req.user.id);
     }
-    findAll(search, skip, take) {
+    getStats() {
+        return this.customersService.getStats();
+    }
+    findAll(search, page, limit, type) {
         return this.customersService.findAll({
             search,
-            skip: skip ? parseInt(skip) : undefined,
-            take: take ? parseInt(take) : undefined,
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            type,
         });
     }
-    findAllTrash(search, skip, take) {
+    findAllTrash(search, page, limit) {
         return this.customersService.findAll({
             search,
-            skip: skip ? parseInt(skip) : undefined,
-            take: take ? parseInt(take) : undefined,
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
             onlyDeleted: true,
         });
     }
@@ -73,21 +77,29 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "create", null);
 __decorate([
+    (0, common_1.Get)('stats'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.view', 'customers.manage'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "getStats", null);
+__decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.RequirePermissions)('customers.view', 'customers.manage'),
     __param(0, (0, common_1.Query)('search')),
-    __param(1, (0, common_1.Query)('skip')),
-    __param(2, (0, common_1.Query)('take')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('type')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('trash'),
     (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
     __param(0, (0, common_1.Query)('search')),
-    __param(1, (0, common_1.Query)('skip')),
-    __param(2, (0, common_1.Query)('take')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)

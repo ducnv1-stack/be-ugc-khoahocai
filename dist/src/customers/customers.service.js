@@ -69,46 +69,87 @@ let CustomersService = class CustomersService {
         return newCustomer;
     }
     async findAll(query) {
-        const { search, skip = 0, take = 50, onlyDeleted = false } = query || {};
-        const customers = await this.prisma.customer.findMany({
-            where: {
-                deletedAt: onlyDeleted ? { not: null } : null,
-                OR: search ? [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { phone: { contains: search } },
-                    { email: { contains: search, mode: 'insensitive' } },
-                    { code: { contains: search, mode: 'insensitive' } },
-                ] : undefined,
-            },
-            include: {
-                assignedSale: {
-                    select: { name: true }
-                },
-                orders: {
-                    include: {
-                        items: { include: { course: true } }
+        const { search, page = 1, limit = 10, type = 'all', onlyDeleted = false } = query || {};
+        const skip = (page - 1) * limit;
+        const take = limit;
+        const where = {
+            deletedAt: onlyDeleted ? { not: null } : null,
+        };
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { code: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+        if (!onlyDeleted) {
+            if (type === 'lead') {
+                where.orders = {
+                    every: { status: { not: 'PAID' } }
+                };
+            }
+            else if (type === 'regular') {
+                where.orders = {
+                    some: { status: 'PAID' }
+                };
+            }
+        }
+        const [items, total] = await Promise.all([
+            this.prisma.customer.findMany({
+                where,
+                include: {
+                    assignedSale: { select: { name: true } },
+                    orders: {
+                        include: {
+                            items: { include: { course: true } }
+                        },
+                        orderBy: { createdAt: 'desc' }
                     },
-                    orderBy: { createdAt: 'desc' }
-                },
-                schedules: {
-                    include: {
-                        schedule: {
-                            include: {
-                                course: true,
-                                instructor: { select: { name: true } }
+                    schedules: {
+                        include: {
+                            schedule: {
+                                include: {
+                                    course: true,
+                                    instructor: { select: { name: true } }
+                                }
                             }
                         }
                     }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take,
+            }),
+            this.prisma.customer.count({ where })
+        ]);
+        return {
+            items: items.map(c => ({
+                ...c,
+                isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
+            })),
+            total
+        };
+    }
+    async getStats() {
+        const [active, leads, trash] = await Promise.all([
+            this.prisma.customer.count({
+                where: {
+                    deletedAt: null,
+                    orders: { some: { status: 'PAID' } }
                 }
-            },
-            orderBy: { createdAt: 'desc' },
-            skip,
-            take,
-        });
-        return customers.map(c => ({
-            ...c,
-            isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
-        }));
+            }),
+            this.prisma.customer.count({
+                where: {
+                    deletedAt: null,
+                    orders: { every: { status: { not: 'PAID' } } }
+                }
+            }),
+            this.prisma.customer.count({
+                where: { deletedAt: { not: null } }
+            })
+        ]);
+        return { active, leads, trash };
     }
     async findOne(id) {
         const customer = await this.prisma.customer.findUnique({

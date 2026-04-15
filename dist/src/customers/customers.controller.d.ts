@@ -10,233 +10,244 @@ export declare class CustomersController {
         } | null;
     } & {
         id: string;
-        code: string | null;
-        name: string;
-        phone: string;
         email: string | null;
+        name: string;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         source: string | null;
         notes: string | null;
         tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
         assignedSaleId: string | null;
     }>;
-    findAll(search?: string, skip?: string, take?: string): Promise<{
-        isLead: boolean;
-        assignedSale: {
-            name: string;
-        } | null;
-        orders: ({
-            items: ({
-                course: {
-                    id: string;
-                    code: string;
-                    name: string;
-                    createdAt: Date;
-                    deletedAt: Date | null;
-                    status: string;
-                    price: number;
-                    duration: number;
-                    totalSessions: number;
-                    description: string | null;
-                };
-            } & {
-                id: string;
-                orderId: string;
-                courseId: string;
-                price: number;
-            })[];
-        } & {
-            id: string;
-            createdAt: Date;
-            customerId: string;
-            saleId: string;
-            totalPrice: number;
-            discountType: import(".prisma/client").$Enums.DiscountType | null;
-            discountValue: number | null;
-            finalPrice: number;
-            paidAmount: number;
-            status: import(".prisma/client").$Enums.OrderStatus;
-            qrCode: string | null;
-            memo: string | null;
-            memoEditable: boolean;
-            locked: boolean;
-            invoiceIssued: boolean;
+    getStats(): Promise<{
+        active: number;
+        leads: number;
+        trash: number;
+    }>;
+    findAll(search?: string, page?: string, limit?: string, type?: 'lead' | 'regular' | 'all'): Promise<{
+        items: {
             isLead: boolean;
-        })[];
-        schedules: ({
-            schedule: {
-                course: {
+            orders: ({
+                items: ({
+                    course: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        code: string;
+                        description: string | null;
+                        price: number;
+                        duration: number;
+                        status: string;
+                        totalSessions: number;
+                        deletedAt: Date | null;
+                    };
+                } & {
                     id: string;
-                    code: string;
-                    name: string;
-                    createdAt: Date;
-                    deletedAt: Date | null;
-                    status: string;
                     price: number;
-                    duration: number;
-                    totalSessions: number;
-                    description: string | null;
-                };
-                instructor: {
-                    name: string;
-                };
+                    orderId: string;
+                    courseId: string;
+                })[];
             } & {
                 id: string;
-                notes: string | null;
                 createdAt: Date;
-                isOnline: boolean;
-                courseId: string;
-                instructorId: string;
-                startTime: Date;
-                endTime: Date;
-                maxCapacity: number;
-                meetingUrl: string | null;
-                googleEventId: string | null;
-                recurringGroupId: string | null;
-            };
-        } & {
-            id: string;
-            customerId: string;
-            scheduleId: string;
-            isAttended: boolean;
-        })[];
-        id: string;
-        code: string | null;
-        name: string;
-        phone: string;
-        email: string | null;
-        source: string | null;
-        notes: string | null;
-        tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
-        assignedSaleId: string | null;
-    }[]>;
-    findAllTrash(search?: string, skip?: string, take?: string): Promise<{
-        isLead: boolean;
-        assignedSale: {
-            name: string;
-        } | null;
-        orders: ({
-            items: ({
-                course: {
-                    id: string;
-                    code: string;
-                    name: string;
-                    createdAt: Date;
-                    deletedAt: Date | null;
-                    status: string;
-                    price: number;
-                    duration: number;
-                    totalSessions: number;
-                    description: string | null;
-                };
-            } & {
-                id: string;
-                orderId: string;
-                courseId: string;
-                price: number;
+                customerId: string;
+                status: import(".prisma/client").$Enums.OrderStatus;
+                saleId: string;
+                totalPrice: number;
+                discountType: import(".prisma/client").$Enums.DiscountType | null;
+                discountValue: number | null;
+                finalPrice: number;
+                paidAmount: number;
+                qrCode: string | null;
+                memo: string | null;
+                memoEditable: boolean;
+                locked: boolean;
+                invoiceIssued: boolean;
+                isLead: boolean;
             })[];
-        } & {
-            id: string;
-            createdAt: Date;
-            customerId: string;
-            saleId: string;
-            totalPrice: number;
-            discountType: import(".prisma/client").$Enums.DiscountType | null;
-            discountValue: number | null;
-            finalPrice: number;
-            paidAmount: number;
-            status: import(".prisma/client").$Enums.OrderStatus;
-            qrCode: string | null;
-            memo: string | null;
-            memoEditable: boolean;
-            locked: boolean;
-            invoiceIssued: boolean;
-            isLead: boolean;
-        })[];
-        schedules: ({
-            schedule: {
-                course: {
+            schedules: ({
+                schedule: {
+                    course: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        code: string;
+                        description: string | null;
+                        price: number;
+                        duration: number;
+                        status: string;
+                        totalSessions: number;
+                        deletedAt: Date | null;
+                    };
+                    instructor: {
+                        name: string;
+                    };
+                } & {
                     id: string;
-                    code: string;
-                    name: string;
+                    isOnline: boolean;
                     createdAt: Date;
-                    deletedAt: Date | null;
-                    status: string;
-                    price: number;
-                    duration: number;
-                    totalSessions: number;
-                    description: string | null;
-                };
-                instructor: {
-                    name: string;
+                    notes: string | null;
+                    courseId: string;
+                    instructorId: string;
+                    startTime: Date;
+                    endTime: Date;
+                    maxCapacity: number;
+                    meetingUrl: string | null;
+                    googleEventId: string | null;
+                    recurringGroupId: string | null;
                 };
             } & {
                 id: string;
-                notes: string | null;
-                createdAt: Date;
-                isOnline: boolean;
-                courseId: string;
-                instructorId: string;
-                startTime: Date;
-                endTime: Date;
-                maxCapacity: number;
-                meetingUrl: string | null;
-                googleEventId: string | null;
-                recurringGroupId: string | null;
-            };
-        } & {
+                scheduleId: string;
+                customerId: string;
+                isAttended: boolean;
+            })[];
+            assignedSale: {
+                name: string;
+            } | null;
             id: string;
-            customerId: string;
-            scheduleId: string;
-            isAttended: boolean;
-        })[];
-        id: string;
-        code: string | null;
-        name: string;
-        phone: string;
-        email: string | null;
-        source: string | null;
-        notes: string | null;
-        tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
-        assignedSaleId: string | null;
-    }[]>;
+            email: string | null;
+            name: string;
+            createdAt: Date;
+            code: string | null;
+            deletedAt: Date | null;
+            phone: string;
+            source: string | null;
+            notes: string | null;
+            tags: string[];
+            assignedSaleId: string | null;
+        }[];
+        total: number;
+    }>;
+    findAllTrash(search?: string, page?: string, limit?: string): Promise<{
+        items: {
+            isLead: boolean;
+            orders: ({
+                items: ({
+                    course: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        code: string;
+                        description: string | null;
+                        price: number;
+                        duration: number;
+                        status: string;
+                        totalSessions: number;
+                        deletedAt: Date | null;
+                    };
+                } & {
+                    id: string;
+                    price: number;
+                    orderId: string;
+                    courseId: string;
+                })[];
+            } & {
+                id: string;
+                createdAt: Date;
+                customerId: string;
+                status: import(".prisma/client").$Enums.OrderStatus;
+                saleId: string;
+                totalPrice: number;
+                discountType: import(".prisma/client").$Enums.DiscountType | null;
+                discountValue: number | null;
+                finalPrice: number;
+                paidAmount: number;
+                qrCode: string | null;
+                memo: string | null;
+                memoEditable: boolean;
+                locked: boolean;
+                invoiceIssued: boolean;
+                isLead: boolean;
+            })[];
+            schedules: ({
+                schedule: {
+                    course: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        code: string;
+                        description: string | null;
+                        price: number;
+                        duration: number;
+                        status: string;
+                        totalSessions: number;
+                        deletedAt: Date | null;
+                    };
+                    instructor: {
+                        name: string;
+                    };
+                } & {
+                    id: string;
+                    isOnline: boolean;
+                    createdAt: Date;
+                    notes: string | null;
+                    courseId: string;
+                    instructorId: string;
+                    startTime: Date;
+                    endTime: Date;
+                    maxCapacity: number;
+                    meetingUrl: string | null;
+                    googleEventId: string | null;
+                    recurringGroupId: string | null;
+                };
+            } & {
+                id: string;
+                scheduleId: string;
+                customerId: string;
+                isAttended: boolean;
+            })[];
+            assignedSale: {
+                name: string;
+            } | null;
+            id: string;
+            email: string | null;
+            name: string;
+            createdAt: Date;
+            code: string | null;
+            deletedAt: Date | null;
+            phone: string;
+            source: string | null;
+            notes: string | null;
+            tags: string[];
+            assignedSaleId: string | null;
+        }[];
+        total: number;
+    }>;
     findOne(id: string): Promise<{
         orders: ({
             items: ({
                 course: {
                     id: string;
-                    code: string;
                     name: string;
                     createdAt: Date;
-                    deletedAt: Date | null;
-                    status: string;
+                    code: string;
+                    description: string | null;
                     price: number;
                     duration: number;
+                    status: string;
                     totalSessions: number;
-                    description: string | null;
+                    deletedAt: Date | null;
                 };
             } & {
                 id: string;
+                price: number;
                 orderId: string;
                 courseId: string;
-                price: number;
             })[];
         } & {
             id: string;
             createdAt: Date;
             customerId: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
             finalPrice: number;
             paidAmount: number;
-            status: import(".prisma/client").$Enums.OrderStatus;
             qrCode: string | null;
             memo: string | null;
             memoEditable: boolean;
@@ -246,28 +257,28 @@ export declare class CustomersController {
         })[];
     } & {
         id: string;
-        code: string | null;
-        name: string;
-        phone: string;
         email: string | null;
+        name: string;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         source: string | null;
         notes: string | null;
         tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
         assignedSaleId: string | null;
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, req: any): Promise<{
         id: string;
-        code: string | null;
-        name: string;
-        phone: string;
         email: string | null;
+        name: string;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         source: string | null;
         notes: string | null;
         tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
         assignedSaleId: string | null;
     }>;
     deleteLead(id: string): Promise<{
@@ -278,28 +289,28 @@ export declare class CustomersController {
     }>;
     restore(id: string, req: any): Promise<{
         id: string;
-        code: string | null;
-        name: string;
-        phone: string;
         email: string | null;
+        name: string;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         source: string | null;
         notes: string | null;
         tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
         assignedSaleId: string | null;
     }>;
     remove(id: string, req: any): Promise<{
         id: string;
-        code: string | null;
-        name: string;
-        phone: string;
         email: string | null;
+        name: string;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         source: string | null;
         notes: string | null;
         tags: string[];
-        createdAt: Date;
-        deletedAt: Date | null;
         assignedSaleId: string | null;
     }>;
 }

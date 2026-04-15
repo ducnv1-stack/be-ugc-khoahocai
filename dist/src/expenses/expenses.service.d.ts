@@ -9,8 +9,8 @@ export declare class ExpensesService {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }>;
     findAll(): Promise<{
@@ -19,8 +19,8 @@ export declare class ExpensesService {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }[]>;
     findOne(id: string): Promise<{
@@ -29,8 +29,8 @@ export declare class ExpensesService {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     } | null>;
     remove(id: string): Promise<{
@@ -39,8 +39,8 @@ export declare class ExpensesService {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        amount: number;
         type: string;
+        amount: number;
         date: Date;
     }>;
     getStats(startDate?: Date, endDate?: Date): Promise<{

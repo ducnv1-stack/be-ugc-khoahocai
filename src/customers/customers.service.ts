@@ -69,50 +69,99 @@ export class CustomersService {
     return newCustomer;
   }
 
-  async findAll(query?: { search?: string; skip?: number; take?: number; onlyDeleted?: boolean }) {
-    const { search, skip = 0, take = 50, onlyDeleted = false } = query || {};
-    
-    const customers = await this.prisma.customer.findMany({
-      where: {
-        deletedAt: onlyDeleted ? { not: null } : null,
-        OR: search ? [
-          { name: { contains: search, mode: 'insensitive' } },
-          { phone: { contains: search } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { code: { contains: search, mode: 'insensitive' } },
-        ] : undefined,
-      },
-      include: {
-        assignedSale: {
-          select: { name: true }
-        },
-        orders: {
-          include: {
-            items: { include: { course: true } }
+  async findAll(query?: { search?: string; page?: number; limit?: number; type?: 'lead' | 'regular' | 'all'; onlyDeleted?: boolean }) {
+    const { search, page = 1, limit = 10, type = 'all', onlyDeleted = false } = query || {};
+    const skip = (page - 1) * limit;
+    const take = limit;
+
+    const where: any = {
+      deletedAt: onlyDeleted ? { not: null } : null,
+    };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (!onlyDeleted) {
+      if (type === 'lead') {
+        // Khách tạm: Không có đơn hàng nào đã thanh toán (PAID)
+        where.orders = {
+          every: { status: { not: 'PAID' } }
+        };
+      } else if (type === 'regular') {
+        // Học viên chính thức: Có ít nhất 1 đơn hàng đã thanh toán
+        where.orders = {
+          some: { status: 'PAID' }
+        };
+      }
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.customer.findMany({
+        where,
+        include: {
+          assignedSale: { select: { name: true } },
+          orders: {
+            include: {
+              items: { include: { course: true } }
+            },
+            orderBy: { createdAt: 'desc' }
           },
-          orderBy: { createdAt: 'desc' }
-        },
-        schedules: {
-          include: {
-            schedule: {
-              include: {
-                course: true,
-                instructor: { select: { name: true } }
+          schedules: {
+            include: {
+              schedule: {
+                include: {
+                  course: true,
+                  instructor: { select: { name: true } }
+                }
               }
             }
           }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take,
-    });
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.customer.count({ where })
+    ]);
 
-    // Tính field isLead: Khách tạm nếu CHƯA có đơn hàng nào HOẶC tất cả đơn đều chưa thanh toán (PAID)
-    return customers.map(c => ({
-      ...c,
-      isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
-    }));
+    return {
+      items: items.map(c => ({
+        ...c,
+        isLead: c.orders.length === 0 || c.orders.every(o => o.status !== 'PAID'),
+      })),
+      total
+    };
+  }
+
+  async getStats() {
+    const [active, leads, trash] = await Promise.all([
+      // Học viên: Có ít nhất 1 đơn PAID
+      this.prisma.customer.count({
+        where: {
+          deletedAt: null,
+          orders: { some: { status: 'PAID' } }
+        }
+      }),
+      // Khách tạm: Mọi đơn đều KHÔNG PAID (hoặc chưa có đơn)
+      this.prisma.customer.count({
+        where: {
+          deletedAt: null,
+          orders: { every: { status: { not: 'PAID' } } }
+        }
+      }),
+      // Thùng rác
+      this.prisma.customer.count({
+        where: { deletedAt: { not: null } }
+      })
+    ]);
+
+    return { active, leads, trash };
   }
 
   async findOne(id: string) {
