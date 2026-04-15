@@ -174,7 +174,9 @@ model Schedule {
   startTime     DateTime
   endTime       DateTime
   maxCapacity   Int      @default(10) // Sĩ số tối đa của buổi học
-  meetingUrl    String? // Link Google Meet (Nhập tay GĐ1)
+  meetingUrl    String? // Link Google Meet (Nhập tay GĐ1) hoặc Địa điểm học
+  notes         String? // Ghi chú riêng cho buổi học
+  isOnline      Boolean  @default(true) // Phân biệt Online/Offline
   googleEventId String? // Để dành cho GĐ sau
   recurringGroupId String? // Để quản lý lịch học theo chuỗi (2-4-6 hàng tuần)
   createdAt     DateTime @default(now())
@@ -192,7 +194,7 @@ model ScheduleStudent {
   customerId String
   isAttended Boolean @default(false)
 
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   customer Customer @relation(fields: [customerId], references: [id])
 
   @@unique([scheduleId, customerId])
@@ -207,7 +209,7 @@ model Reminder {
   status     ReminderStatus @default(PENDING)
   sendAt     DateTime
 
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   customer Customer @relation(fields: [customerId], references: [id])
 }
 

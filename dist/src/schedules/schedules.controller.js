@@ -21,8 +21,8 @@ let SchedulesController = class SchedulesController {
     constructor(schedulesService) {
         this.schedulesService = schedulesService;
     }
-    findAll() {
-        return this.schedulesService.findAll();
+    findAll(courseId) {
+        return this.schedulesService.findAll({ courseId });
     }
     findOne(id) {
         return this.schedulesService.findOne(id);
@@ -33,26 +33,34 @@ let SchedulesController = class SchedulesController {
     updateTime(id, data) {
         return this.schedulesService.updateTime(id, new Date(data.startTime), new Date(data.endTime));
     }
+    update(id, body) {
+        return this.schedulesService.update(id, body);
+    }
     toggleAttendance(id, customerId) {
         return this.schedulesService.toggleAttendance(id, customerId);
     }
     removeSchedule(id, series) {
         return this.schedulesService.removeSchedule(id, series === 'true');
     }
-    searchCustomers(q) {
-        if (!q || q.length < 2)
-            return [];
-        return this.schedulesService.searchCustomers(q);
+    searchCustomers(q, scheduleId) {
+        return this.schedulesService.searchCustomers(q || '', scheduleId);
     }
     addStudent(id, customerId) {
         return this.schedulesService.addStudent(id, customerId);
+    }
+    getPotentialStudents(id) {
+        return this.schedulesService.getPotentialStudents(id);
+    }
+    removeStudent(id, customerId) {
+        return this.schedulesService.removeStudent(id, customerId);
     }
 };
 exports.SchedulesController = SchedulesController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('courseId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], SchedulesController.prototype, "findAll", null);
 __decorate([
@@ -78,6 +86,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SchedulesController.prototype, "updateTime", null);
 __decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SchedulesController.prototype, "update", null);
+__decorate([
     (0, common_1.Patch)(':id/students/:customerId/attendance'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Param)('customerId')),
@@ -96,8 +112,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)('search-customers'),
     __param(0, (0, common_1.Query)('q')),
+    __param(1, (0, common_1.Query)('scheduleId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SchedulesController.prototype, "searchCustomers", null);
 __decorate([
@@ -108,6 +125,21 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SchedulesController.prototype, "addStudent", null);
+__decorate([
+    (0, common_1.Get)(':id/potential-students'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SchedulesController.prototype, "getPotentialStudents", null);
+__decorate([
+    (0, common_1.Delete)(':id/students/:customerId'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('customerId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], SchedulesController.prototype, "removeStudent", null);
 exports.SchedulesController = SchedulesController = __decorate([
     (0, common_1.Controller)('schedules'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

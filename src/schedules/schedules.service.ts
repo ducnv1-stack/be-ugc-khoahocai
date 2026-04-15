@@ -7,8 +7,14 @@ import { addDays, setHours, setMinutes, setSeconds, isSameDay } from 'date-fns';
 export class SchedulesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(filters?: { courseId?: string }) {
+    const where: any = {};
+    if (filters?.courseId) {
+      where.courseId = filters.courseId;
+    }
+
     return this.prisma.schedule.findMany({
+      where,
       include: {
         course: { select: { id: true, name: true, code: true, totalSessions: true } },
         instructor: { select: { id: true, name: true } },
@@ -45,13 +51,14 @@ export class SchedulesService {
     endTime: Date;
     maxCapacity?: number;
     meetingUrl?: string;
+    notes?: string;
+    isOnline?: boolean;
     recurring?: {
-      daysOfWeek: number[]; // 0 for Sunday, 1 for Monday, etc.
+      daysOfWeek: number[];
       totalSessions: number;
     }
   }) {
     if (!data.recurring) {
-      // Create single session
       return this.prisma.schedule.create({
         data: {
           courseId: data.courseId,
@@ -60,17 +67,24 @@ export class SchedulesService {
           endTime: data.endTime,
           maxCapacity: data.maxCapacity || 10,
           meetingUrl: data.meetingUrl,
+          notes: data.notes,
+          isOnline: data.isOnline ?? true,
         }
       });
     }
 
-    // Create recurring series
     const recurringGroupId = uuidv4();
+    const schedules = this._generateRecurringSchedules(data, recurringGroupId);
+
+    return this.prisma.$transaction(
+      schedules.map(s => this.prisma.schedule.create({ data: s }))
+    );
+  }
+
+  private _generateRecurringSchedules(data: any, recurringGroupId: string) {
     const schedules: any[] = [];
     let currentCount = 0;
     let currentDate = new Date(data.startTime);
-    
-    // Duration in ms
     const duration = new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
 
     while (currentCount < data.recurring.totalSessions) {
@@ -86,19 +100,16 @@ export class SchedulesService {
           endTime: sessionEndTime,
           maxCapacity: data.maxCapacity || 10,
           meetingUrl: data.meetingUrl,
+          notes: data.notes,
+          isOnline: data.isOnline ?? true,
           recurringGroupId,
         });
         currentCount++;
       }
       currentDate = addDays(currentDate, 1);
-      
-      // Safety break to prevent infinite loop
       if (schedules.length > 100) break;
     }
-
-    return this.prisma.$transaction(
-      schedules.map(s => this.prisma.schedule.create({ data: s }))
-    );
+    return schedules;
   }
 
   async updateTime(id: string, startTime: Date, endTime: Date) {
@@ -106,6 +117,74 @@ export class SchedulesService {
       where: { id },
       data: { startTime, endTime }
     });
+  }
+
+  async update(id: string, data: { 
+    courseId?: string; 
+    instructorId?: string; 
+    maxCapacity?: number; 
+    meetingUrl?: string; 
+    startTime?: Date; 
+    endTime?: Date;
+    notes?: string;
+    isOnline?: boolean;
+    recurring?: {
+      daysOfWeek: number[];
+      totalSessions: number;
+    }
+  }) {
+    const schedule = await this.prisma.schedule.findUnique({ where: { id } });
+    if (!schedule) throw new NotFoundException('Lịch học không tồn tại');
+
+    // Update the current record
+    const updated = await this.prisma.schedule.update({
+      where: { id },
+      data: {
+        courseId: data.courseId,
+        instructorId: data.instructorId,
+        maxCapacity: data.maxCapacity,
+        meetingUrl: data.meetingUrl,
+        notes: data.notes,
+        isOnline: data.isOnline,
+        startTime: data.startTime,
+        endTime: data.endTime,
+      }
+    });
+
+    // If recurring options are provided, generate the rest of the series
+    if (data.recurring && data.recurring.totalSessions > 1) {
+      const recurringGroupId = schedule.recurringGroupId || uuidv4();
+      
+      // If we are starting from an existing session, we need to update its groupId
+      if (!schedule.recurringGroupId) {
+        await this.prisma.schedule.update({
+          where: { id },
+          data: { recurringGroupId }
+        });
+      }
+
+      // Generate the REMAINING sessions (totalSessions - 1)
+      const recurringData = {
+        ...data,
+        recurring: {
+          ...data.recurring,
+          totalSessions: data.recurring.totalSessions - 1
+        },
+        // Start from the day after the current session
+        startTime: addDays(new Date(data.startTime || schedule.startTime), 1),
+        endTime: addDays(new Date(data.endTime || schedule.endTime), 1),
+      };
+
+      const remainingSchedules = this._generateRecurringSchedules(recurringData, recurringGroupId);
+      
+      if (remainingSchedules.length > 0) {
+        await this.prisma.$transaction(
+          remainingSchedules.map(s => this.prisma.schedule.create({ data: s }))
+        );
+      }
+    }
+
+    return updated;
   }
 
   async toggleAttendance(scheduleId: string, customerId: string) {
@@ -165,16 +244,129 @@ export class SchedulesService {
     });
   }
 
-  async searchCustomers(query: string) {
-    return this.prisma.customer.findMany({
-      where: {
-        OR: [
-          { name: { contains: query.trim(), mode: 'insensitive' } },
-          { phone: { contains: query.trim() } },
-        ],
-        deletedAt: null,
+  async searchCustomers(query: string, scheduleId?: string) {
+    const searchTerm = query.trim();
+    console.log(`[SearchStudents] query="${searchTerm}", scheduleId="${scheduleId}"`);
+    
+    // Determine the base where clause
+    const where: any = { deletedAt: null };
+    
+    if (searchTerm.length < 2) {
+      return [];
+    }
+
+    const customers = await this.prisma.customer.findMany({
+      where,
+      include: {
+        schedules: {
+          where: { scheduleId },
+          select: { id: true }
+        },
+        orders: {
+          where: {
+            status: { not: 'CANCELLED' },
+          },
+          include: {
+            items: true
+          }
+        }
       },
-      take: 10,
+      take: 20,
+    });
+
+    console.log(`[SearchStudents] Found ${customers.length} results`);
+    
+    if (!scheduleId) return customers;
+
+    const currentSchedule = await this.prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      select: { courseId: true }
+    });
+
+    return customers.map(customer => {
+      // Check if already assigned
+      const isAssigned = customer.schedules.length > 0;
+
+      // Check tuition for the course
+      let tuitionStatus: 'PAID' | 'UNPAID' | 'NOT_ENROLLED' = 'NOT_ENROLLED';
+      const relevantOrder = customer.orders.find(order => 
+        order.items.some(item => item.courseId === currentSchedule?.courseId)
+      );
+
+      if (relevantOrder) {
+        tuitionStatus = (relevantOrder.paidAmount >= relevantOrder.finalPrice) ? 'PAID' : 'UNPAID';
+      }
+
+      const { schedules, orders, ...customerData } = customer;
+      return {
+        ...customerData,
+        isAssigned,
+        tuitionStatus,
+        unpaidAmount: relevantOrder ? Math.max(0, relevantOrder.finalPrice - relevantOrder.paidAmount) : 0
+      };
+    });
+  }
+
+  async getPotentialStudents(scheduleId: string) {
+    const schedule = await this.prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      select: { courseId: true }
+    });
+
+    if (!schedule) return [];
+
+    const customers = await this.prisma.customer.findMany({
+      where: {
+        deletedAt: null,
+        orders: {
+          some: {
+            status: { not: 'CANCELLED' },
+            items: { some: { courseId: schedule.courseId } }
+          }
+        }
+      },
+      include: {
+        schedules: {
+          where: { scheduleId },
+          select: { id: true }
+        },
+        orders: {
+          where: {
+            status: { not: 'CANCELLED' },
+          },
+          include: {
+            items: true
+          }
+        }
+      }
+    });
+
+    return customers.map(customer => {
+      // Check if already assigned
+      const isAssigned = customer.schedules.length > 0;
+
+      // Check tuition for the course
+      let tuitionStatus: 'PAID' | 'UNPAID' | 'NOT_ENROLLED' = 'NOT_ENROLLED';
+      const relevantOrder = customer.orders.find(order => 
+        order.items.some(item => item.courseId === schedule.courseId)
+      );
+
+      if (relevantOrder) {
+        tuitionStatus = (relevantOrder.paidAmount >= relevantOrder.finalPrice) ? 'PAID' : 'UNPAID';
+      }
+
+      return {
+        ...customer,
+        isAssigned,
+        tuitionStatus,
+        debtAmount: relevantOrder ? Math.max(0, relevantOrder.finalPrice - relevantOrder.paidAmount) : 0
+      };
+    });
+  }
+
+  async removeStudent(scheduleId: string, customerId: string) {
+    return this.prisma.scheduleStudent.delete({
+      where: { scheduleId_customerId: { scheduleId, customerId } }
     });
   }
 }

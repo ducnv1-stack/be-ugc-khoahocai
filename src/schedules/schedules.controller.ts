@@ -8,8 +8,8 @@ export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Get()
-  findAll() {
-    return this.schedulesService.findAll();
+  findAll(@Query('courseId') courseId?: string) {
+    return this.schedulesService.findAll({ courseId });
   }
 
   @Get(':id')
@@ -27,6 +27,11 @@ export class SchedulesController {
     return this.schedulesService.updateTime(id, new Date(data.startTime), new Date(data.endTime));
   }
 
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() body: any) {
+    return this.schedulesService.update(id, body);
+  }
+
   @Patch(':id/students/:customerId/attendance')
   toggleAttendance(@Param('id') id: string, @Param('customerId') customerId: string) {
     return this.schedulesService.toggleAttendance(id, customerId);
@@ -38,13 +43,22 @@ export class SchedulesController {
   }
 
   @Get('search-customers')
-  searchCustomers(@Query('q') q: string) {
-    if (!q || q.length < 2) return [];
-    return this.schedulesService.searchCustomers(q);
+  searchCustomers(@Query('q') q: string, @Query('scheduleId') scheduleId?: string) {
+    return this.schedulesService.searchCustomers(q || '', scheduleId);
   }
 
   @Post(':id/students')
   addStudent(@Param('id') id: string, @Body('customerId') customerId: string) {
     return this.schedulesService.addStudent(id, customerId);
+  }
+
+  @Get(':id/potential-students')
+  getPotentialStudents(@Param('id') id: string) {
+    return this.schedulesService.getPotentialStudents(id);
+  }
+
+  @Delete(':id/students/:customerId')
+  removeStudent(@Param('id') id: string, @Param('customerId') customerId: string) {
+    return this.schedulesService.removeStudent(id, customerId);
   }
 }

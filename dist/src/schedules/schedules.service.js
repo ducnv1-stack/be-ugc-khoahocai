@@ -19,8 +19,13 @@ let SchedulesService = class SchedulesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll() {
+    async findAll(filters) {
+        const where = {};
+        if (filters?.courseId) {
+            where.courseId = filters.courseId;
+        }
         return this.prisma.schedule.findMany({
+            where,
             include: {
                 course: { select: { id: true, name: true, code: true, totalSessions: true } },
                 instructor: { select: { id: true, name: true } },
@@ -58,10 +63,16 @@ let SchedulesService = class SchedulesService {
                     endTime: data.endTime,
                     maxCapacity: data.maxCapacity || 10,
                     meetingUrl: data.meetingUrl,
+                    notes: data.notes,
+                    isOnline: data.isOnline ?? true,
                 }
             });
         }
         const recurringGroupId = (0, uuid_1.v4)();
+        const schedules = this._generateRecurringSchedules(data, recurringGroupId);
+        return this.prisma.$transaction(schedules.map(s => this.prisma.schedule.create({ data: s })));
+    }
+    _generateRecurringSchedules(data, recurringGroupId) {
         const schedules = [];
         let currentCount = 0;
         let currentDate = new Date(data.startTime);
@@ -78,6 +89,8 @@ let SchedulesService = class SchedulesService {
                     endTime: sessionEndTime,
                     maxCapacity: data.maxCapacity || 10,
                     meetingUrl: data.meetingUrl,
+                    notes: data.notes,
+                    isOnline: data.isOnline ?? true,
                     recurringGroupId,
                 });
                 currentCount++;
@@ -86,13 +99,54 @@ let SchedulesService = class SchedulesService {
             if (schedules.length > 100)
                 break;
         }
-        return this.prisma.$transaction(schedules.map(s => this.prisma.schedule.create({ data: s })));
+        return schedules;
     }
     async updateTime(id, startTime, endTime) {
         return this.prisma.schedule.update({
             where: { id },
             data: { startTime, endTime }
         });
+    }
+    async update(id, data) {
+        const schedule = await this.prisma.schedule.findUnique({ where: { id } });
+        if (!schedule)
+            throw new common_1.NotFoundException('Lịch học không tồn tại');
+        const updated = await this.prisma.schedule.update({
+            where: { id },
+            data: {
+                courseId: data.courseId,
+                instructorId: data.instructorId,
+                maxCapacity: data.maxCapacity,
+                meetingUrl: data.meetingUrl,
+                notes: data.notes,
+                isOnline: data.isOnline,
+                startTime: data.startTime,
+                endTime: data.endTime,
+            }
+        });
+        if (data.recurring && data.recurring.totalSessions > 1) {
+            const recurringGroupId = schedule.recurringGroupId || (0, uuid_1.v4)();
+            if (!schedule.recurringGroupId) {
+                await this.prisma.schedule.update({
+                    where: { id },
+                    data: { recurringGroupId }
+                });
+            }
+            const recurringData = {
+                ...data,
+                recurring: {
+                    ...data.recurring,
+                    totalSessions: data.recurring.totalSessions - 1
+                },
+                startTime: (0, date_fns_1.addDays)(new Date(data.startTime || schedule.startTime), 1),
+                endTime: (0, date_fns_1.addDays)(new Date(data.endTime || schedule.endTime), 1),
+            };
+            const remainingSchedules = this._generateRecurringSchedules(recurringData, recurringGroupId);
+            if (remainingSchedules.length > 0) {
+                await this.prisma.$transaction(remainingSchedules.map(s => this.prisma.schedule.create({ data: s })));
+            }
+        }
+        return updated;
     }
     async toggleAttendance(scheduleId, customerId) {
         const record = await this.prisma.scheduleStudent.findUnique({
@@ -143,16 +197,104 @@ let SchedulesService = class SchedulesService {
             }
         });
     }
-    async searchCustomers(query) {
-        return this.prisma.customer.findMany({
-            where: {
-                OR: [
-                    { name: { contains: query.trim(), mode: 'insensitive' } },
-                    { phone: { contains: query.trim() } },
-                ],
-                deletedAt: null,
+    async searchCustomers(query, scheduleId) {
+        const searchTerm = query.trim();
+        console.log(`[SearchStudents] query="${searchTerm}", scheduleId="${scheduleId}"`);
+        const where = { deletedAt: null };
+        if (searchTerm.length < 2) {
+            return [];
+        }
+        const customers = await this.prisma.customer.findMany({
+            where,
+            include: {
+                schedules: {
+                    where: { scheduleId },
+                    select: { id: true }
+                },
+                orders: {
+                    where: {
+                        status: { not: 'CANCELLED' },
+                    },
+                    include: {
+                        items: true
+                    }
+                }
             },
-            take: 10,
+            take: 20,
+        });
+        console.log(`[SearchStudents] Found ${customers.length} results`);
+        if (!scheduleId)
+            return customers;
+        const currentSchedule = await this.prisma.schedule.findUnique({
+            where: { id: scheduleId },
+            select: { courseId: true }
+        });
+        return customers.map(customer => {
+            const isAssigned = customer.schedules.length > 0;
+            let tuitionStatus = 'NOT_ENROLLED';
+            const relevantOrder = customer.orders.find(order => order.items.some(item => item.courseId === currentSchedule?.courseId));
+            if (relevantOrder) {
+                tuitionStatus = (relevantOrder.paidAmount >= relevantOrder.finalPrice) ? 'PAID' : 'UNPAID';
+            }
+            const { schedules, orders, ...customerData } = customer;
+            return {
+                ...customerData,
+                isAssigned,
+                tuitionStatus,
+                unpaidAmount: relevantOrder ? Math.max(0, relevantOrder.finalPrice - relevantOrder.paidAmount) : 0
+            };
+        });
+    }
+    async getPotentialStudents(scheduleId) {
+        const schedule = await this.prisma.schedule.findUnique({
+            where: { id: scheduleId },
+            select: { courseId: true }
+        });
+        if (!schedule)
+            return [];
+        const customers = await this.prisma.customer.findMany({
+            where: {
+                deletedAt: null,
+                orders: {
+                    some: {
+                        status: { not: 'CANCELLED' },
+                        items: { some: { courseId: schedule.courseId } }
+                    }
+                }
+            },
+            include: {
+                schedules: {
+                    where: { scheduleId },
+                    select: { id: true }
+                },
+                orders: {
+                    where: {
+                        status: { not: 'CANCELLED' },
+                    },
+                    include: {
+                        items: true
+                    }
+                }
+            }
+        });
+        return customers.map(customer => {
+            const isAssigned = customer.schedules.length > 0;
+            let tuitionStatus = 'NOT_ENROLLED';
+            const relevantOrder = customer.orders.find(order => order.items.some(item => item.courseId === schedule.courseId));
+            if (relevantOrder) {
+                tuitionStatus = (relevantOrder.paidAmount >= relevantOrder.finalPrice) ? 'PAID' : 'UNPAID';
+            }
+            return {
+                ...customer,
+                isAssigned,
+                tuitionStatus,
+                debtAmount: relevantOrder ? Math.max(0, relevantOrder.finalPrice - relevantOrder.paidAmount) : 0
+            };
+        });
+    }
+    async removeStudent(scheduleId, customerId) {
+        return this.prisma.scheduleStudent.delete({
+            where: { scheduleId_customerId: { scheduleId, customerId } }
         });
     }
 };
