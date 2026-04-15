@@ -20,50 +20,50 @@ export declare class PaymentsService {
     }>;
     getWebhookLogs(): Promise<{
         id: string;
-        createdAt: Date;
-        status: string;
         source: string;
         payload: import("@prisma/client/runtime/library").JsonValue;
+        status: string;
         retryCount: number;
+        createdAt: Date;
     }[]>;
     findAllPayments(): Promise<({
         order: {
             customer: {
                 id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                code: string | null;
-                deletedAt: Date | null;
-                phone: string;
                 source: string | null;
+                createdAt: Date;
+                name: string;
+                code: string | null;
+                phone: string;
+                email: string | null;
                 notes: string | null;
                 tags: string[];
                 assignedSaleId: string | null;
+                deletedAt: Date | null;
             };
             items: ({
                 course: {
                     id: string;
-                    name: string;
+                    status: string;
                     createdAt: Date;
+                    name: string;
                     code: string;
-                    description: string | null;
+                    deletedAt: Date | null;
                     price: number;
                     duration: number;
                     totalSessions: number;
-                    status: string;
-                    deletedAt: Date | null;
+                    description: string | null;
                 };
             } & {
                 id: string;
-                price: number;
                 orderId: string;
                 courseId: string;
+                price: number;
             })[];
         } & {
             id: string;
-            createdAt: Date;
             status: import(".prisma/client").$Enums.OrderStatus;
+            createdAt: Date;
             customerId: string;
             saleId: string;
             totalPrice: number;
@@ -80,8 +80,8 @@ export declare class PaymentsService {
         };
     } & {
         id: string;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         orderId: string;
         amount: number;
         transactionCode: string | null;

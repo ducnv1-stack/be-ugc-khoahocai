@@ -5,6 +5,9 @@ export declare class SchedulesService {
     findAll(filters?: {
         courseId?: string;
     }): Promise<({
+        _count: {
+            students: number;
+        };
         course: {
             id: string;
             name: string;
@@ -28,22 +31,19 @@ export declare class SchedulesService {
             customerId: string;
             isAttended: boolean;
         })[];
-        _count: {
-            students: number;
-        };
     } & {
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     })[]>;
     findOne(id: string): Promise<({
         course: {
@@ -70,17 +70,17 @@ export declare class SchedulesService {
         })[];
     } & {
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     }) | null>;
     create(data: {
         courseId: string;
@@ -97,45 +97,45 @@ export declare class SchedulesService {
         };
     }): Promise<{
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     } | {
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     }[]>;
     private _generateRecurringSchedules;
     updateTime(id: string, startTime: Date, endTime: Date): Promise<{
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     }>;
     update(id: string, data: {
         courseId?: string;
@@ -152,17 +152,17 @@ export declare class SchedulesService {
         };
     }): Promise<{
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
     }>;
     toggleAttendance(scheduleId: string, customerId: string): Promise<{
         id: string;
@@ -170,20 +170,20 @@ export declare class SchedulesService {
         customerId: string;
         isAttended: boolean;
     }>;
-    removeSchedule(id: string, deleteAllInSeries: boolean): Promise<{
+    removeSchedule(id: string, deleteAllInSeries: boolean): Promise<import(".prisma/client").Prisma.BatchPayload | {
         id: string;
+        isOnline: boolean;
+        createdAt: Date;
+        notes: string | null;
         courseId: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
-        notes: string | null;
-        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-        createdAt: Date;
-    } | import(".prisma/client").Prisma.BatchPayload>;
+    }>;
     addStudent(scheduleId: string, customerId: string): Promise<{
         id: string;
         scheduleId: string;
@@ -191,21 +191,18 @@ export declare class SchedulesService {
         isAttended: boolean;
     }>;
     searchCustomers(query: string, scheduleId?: string): Promise<({
-        schedules: {
-            id: string;
-        }[];
         orders: ({
             items: {
                 id: string;
-                courseId: string;
                 price: number;
                 orderId: string;
+                courseId: string;
             }[];
         } & {
             id: string;
             createdAt: Date;
-            status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
@@ -219,16 +216,19 @@ export declare class SchedulesService {
             invoiceIssued: boolean;
             isLead: boolean;
         })[];
+        schedules: {
+            id: string;
+        }[];
     } & {
         id: string;
-        notes: string | null;
-        createdAt: Date;
+        email: string | null;
         name: string;
+        createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
-        email: string | null;
         phone: string;
         source: string | null;
+        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
     })[] | {
@@ -236,14 +236,14 @@ export declare class SchedulesService {
         tuitionStatus: "PAID" | "UNPAID" | "NOT_ENROLLED";
         unpaidAmount: number;
         id: string;
-        notes: string | null;
-        createdAt: Date;
+        email: string | null;
         name: string;
+        createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
-        email: string | null;
         phone: string;
         source: string | null;
+        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
     }[]>;
@@ -251,21 +251,18 @@ export declare class SchedulesService {
         isAssigned: boolean;
         tuitionStatus: "PAID" | "UNPAID" | "NOT_ENROLLED";
         debtAmount: number;
-        schedules: {
-            id: string;
-        }[];
         orders: ({
             items: {
                 id: string;
-                courseId: string;
                 price: number;
                 orderId: string;
+                courseId: string;
             }[];
         } & {
             id: string;
             createdAt: Date;
-            status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
@@ -279,15 +276,18 @@ export declare class SchedulesService {
             invoiceIssued: boolean;
             isLead: boolean;
         })[];
+        schedules: {
+            id: string;
+        }[];
         id: string;
-        notes: string | null;
-        createdAt: Date;
+        email: string | null;
         name: string;
+        createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
-        email: string | null;
         phone: string;
         source: string | null;
+        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
     }[]>;

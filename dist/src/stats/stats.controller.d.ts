@@ -49,8 +49,8 @@ export declare class StatsController {
     } & {
         id: string;
         createdAt: Date;
-        status: import(".prisma/client").$Enums.OrderStatus;
         customerId: string;
+        status: import(".prisma/client").$Enums.OrderStatus;
         saleId: string;
         totalPrice: number;
         discountType: import(".prisma/client").$Enums.DiscountType | null;

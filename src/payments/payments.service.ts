@@ -91,12 +91,34 @@ export class PaymentsService {
         return null;
     };
 
-    order = findStrictMatch();
+    // Fallback: Tìm kiếm khớp theo chuỗi Memo nguyên bản (Dành cho trường hợp khách copy nguyên nội dung gợi ý)
+    const findMemoMatch = () => {
+        for (const o of pendingOrders) {
+            if (!o.memo) continue;
+            const normalizedMemo = this.removeAccents(o.memo).toUpperCase();
+            if (normalizedContent.toUpperCase().includes(normalizedMemo)) {
+                return o;
+            }
+        }
+        return null;
+    };
 
+    // Bước 1: Thử khớp chính xác 3 yếu tố
+    order = findStrictMatch();
     if (order) {
-        this.logger.log(`Strict match found for order ${order.id} (Customer: ${order.customer.code}, Phone: ${order.customer.phone})`);
+        this.logger.log(`[STRICT_MATCH] Order found: ${order.id} (Customer: ${order.customer.code})`);
     } else {
-        this.logger.warn(`No strict match for memo: "${normalizedContent}"`);
+        // Bước 2: Thử khớp theo chuỗi Memo nếu bước 1 thất bại
+        this.logger.warn(`No strict match for memo: "${normalizedContent}". Trying fallback memo match...`);
+        order = findMemoMatch();
+        
+        if (order) {
+            this.logger.log(`[MEMO_MATCH] Fallback match found for order ${order.id} via stored memo`);
+        }
+    }
+
+    if (!order) {
+        this.logger.error(`[MATCH_FAILED] No matching order found for memo: "${normalizedContent}"`);
         
         // Ghi Audit Log cho trường hợp không khớp (cần duyệt tay)
         const systemAdmin = await this.prisma.user.findFirst({
@@ -112,13 +134,13 @@ export class PaymentsService {
                 newData: {
                     memo: normalizedContent,
                     amount: transferAmount,
-                    reason: 'Nội dung không khớp đủ 3 yếu tố [Mã KH], [SĐT], [Mã Khóa]'
+                    reason: 'Không khớp chính xác 3 yếu tố và cũng không khớp chuỗi Memo hệ thống.'
                 }
             });
         }
 
         await updateLog('MANUAL_REVIEW');
-        return { status: 'manual_review', message: 'Strict matching failed, manual review required' };
+        return { status: 'manual_review', message: 'Matching failed, manual review required' };
     }
 
     if (!order) {
