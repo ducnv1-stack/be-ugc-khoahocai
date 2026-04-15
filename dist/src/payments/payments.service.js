@@ -85,11 +85,12 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             return null;
         };
         const findMemoMatch = () => {
+            const cleanWebhookContent = normalizedContent.replace(/\s+/g, '').toUpperCase();
             for (const o of pendingOrders) {
                 if (!o.memo)
                     continue;
-                const normalizedMemo = this.removeAccents(o.memo).toUpperCase();
-                if (normalizedContent.toUpperCase().includes(normalizedMemo)) {
+                const cleanSystemMemo = this.removeAccents(o.memo).replace(/\s+/g, '').toUpperCase();
+                if (cleanSystemMemo && cleanWebhookContent.includes(cleanSystemMemo)) {
                     return o;
                 }
             }

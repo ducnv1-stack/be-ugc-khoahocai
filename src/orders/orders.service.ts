@@ -313,11 +313,6 @@ export class OrdersService {
 
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
     
-    // Safety check: Không xóa nếu đã có thanh toán
-    if (order.paidAmount > 0) {
-      throw new BadRequestException('Không thể xóa đơn hàng đã có thanh toán. Hãy sử dụng tính năng hoàn tiền nếu cần.');
-    }
-
     return this.prisma.$transaction(async (tx) => {
       // Xóa các bảng liên quan trước
       await tx.orderItem.deleteMany({ where: { orderId: id } });

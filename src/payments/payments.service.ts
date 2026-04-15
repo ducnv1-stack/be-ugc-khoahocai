@@ -91,12 +91,19 @@ export class PaymentsService {
         return null;
     };
 
-    // Fallback: Tìm kiếm khớp theo chuỗi Memo nguyên bản (Dành cho trường hợp khách copy nguyên nội dung gợi ý)
+    // Fallback: Tìm kiếm khớp theo chuỗi Memo nguyên bản (Nâng cao: Chuẩn hóa bỏ khoảng trắng)
     const findMemoMatch = () => {
+        // Chuẩn hóa nội dung ngân hàng: Bỏ khoảng trắng hoàn toàn
+        const cleanWebhookContent = normalizedContent.replace(/\s+/g, '').toUpperCase();
+
         for (const o of pendingOrders) {
             if (!o.memo) continue;
-            const normalizedMemo = this.removeAccents(o.memo).toUpperCase();
-            if (normalizedContent.toUpperCase().includes(normalizedMemo)) {
+            
+            // Chuẩn hóa Memo hệ thống: Bỏ khoảng trắng hoàn toàn
+            const cleanSystemMemo = this.removeAccents(o.memo).replace(/\s+/g, '').toUpperCase();
+            
+            // Nếu Memo hệ thống (không dấu, không cách) nằm trong nội dung ngân hàng (không dấu, không cách)
+            if (cleanSystemMemo && cleanWebhookContent.includes(cleanSystemMemo)) {
                 return o;
             }
         }

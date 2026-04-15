@@ -230,12 +230,6 @@ export class CustomersService {
       throw new BadRequestException('Chỉ có thể xóa vĩnh viễn dữ liệu đã nằm trong thùng rác');
     }
 
-    // Kiểm tra an toàn: không xóa nếu đã có thanh toán (tùy chọn, nhưng nên giữ để an toàn kế toán)
-    const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
-    if (hasPaidOrder) {
-      throw new BadRequestException('Không thể xóa vĩnh viễn khách hàng đã có lịch sử thanh toán');
-    }
-
     await this.auditService.logAction({
       userId: currentUser.id,
       action: 'HARD_DELETE_CUSTOMER',
@@ -267,12 +261,6 @@ export class CustomersService {
     });
 
     if (!customer) throw new NotFoundException('Không tìm thấy khách hàng');
-
-    // Kiểm tra an toàn: không xóa nếu đã có thanh toán
-    const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
-    if (hasPaidOrder) {
-      throw new BadRequestException('Không thể xóa khách hàng đã có lịch sử thanh toán');
-    }
 
     // Xóa cứng: Xóa đơn hàng liên quan trước
     await this.prisma.$transaction(async (tx) => {

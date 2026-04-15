@@ -289,9 +289,6 @@ let OrdersService = class OrdersService {
         });
         if (!order)
             throw new common_1.NotFoundException('Không tìm thấy đơn hàng');
-        if (order.paidAmount > 0) {
-            throw new common_1.BadRequestException('Không thể xóa đơn hàng đã có thanh toán. Hãy sử dụng tính năng hoàn tiền nếu cần.');
-        }
         return this.prisma.$transaction(async (tx) => {
             await tx.orderItem.deleteMany({ where: { orderId: id } });
             await tx.orderHistory.deleteMany({ where: { orderId: id } });

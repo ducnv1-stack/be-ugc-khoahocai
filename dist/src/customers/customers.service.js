@@ -203,10 +203,6 @@ let CustomersService = class CustomersService {
         if (!customer) {
             throw new common_1.BadRequestException('Chỉ có thể xóa vĩnh viễn dữ liệu đã nằm trong thùng rác');
         }
-        const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
-        if (hasPaidOrder) {
-            throw new common_1.BadRequestException('Không thể xóa vĩnh viễn khách hàng đã có lịch sử thanh toán');
-        }
         await this.auditService.logAction({
             userId: currentUser.id,
             action: 'HARD_DELETE_CUSTOMER',
@@ -233,10 +229,6 @@ let CustomersService = class CustomersService {
         });
         if (!customer)
             throw new common_1.NotFoundException('Không tìm thấy khách hàng');
-        const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
-        if (hasPaidOrder) {
-            throw new common_1.BadRequestException('Không thể xóa khách hàng đã có lịch sử thanh toán');
-        }
         await this.prisma.$transaction(async (tx) => {
             for (const order of customer.orders) {
                 await tx.orderItem.deleteMany({ where: { orderId: order.id } });
