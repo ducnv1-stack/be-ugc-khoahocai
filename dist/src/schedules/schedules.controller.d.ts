@@ -3,9 +3,6 @@ export declare class SchedulesController {
     private readonly schedulesService;
     constructor(schedulesService: SchedulesService);
     findAll(courseId?: string): Promise<({
-        _count: {
-            students: number;
-        };
         course: {
             id: string;
             name: string;
@@ -25,23 +22,26 @@ export declare class SchedulesController {
             };
         } & {
             id: string;
-            customerId: string;
             scheduleId: string;
+            customerId: string;
             isAttended: boolean;
         })[];
+        _count: {
+            students: number;
+        };
     } & {
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     })[]>;
     findOne(id: string): Promise<({
         course: {
@@ -62,109 +62,112 @@ export declare class SchedulesController {
             };
         } & {
             id: string;
-            customerId: string;
             scheduleId: string;
+            customerId: string;
             isAttended: boolean;
         })[];
     } & {
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     }) | null>;
     create(data: any): Promise<{
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     } | {
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     }[]>;
     updateTime(id: string, data: {
         startTime: string;
         endTime: string;
     }): Promise<{
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     }>;
     update(id: string, body: any): Promise<{
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
+        createdAt: Date;
     }>;
     toggleAttendance(id: string, customerId: string): Promise<{
         id: string;
-        customerId: string;
         scheduleId: string;
+        customerId: string;
         isAttended: boolean;
     }>;
-    removeSchedule(id: string, series: string): Promise<import(".prisma/client").Prisma.BatchPayload | {
-        id: string;
-        isOnline: boolean;
-        createdAt: Date;
-        notes: string | null;
+    removeSchedule(id: string, series: string): Promise<{
         courseId: string;
+        id: string;
         instructorId: string;
         startTime: Date;
         endTime: Date;
         maxCapacity: number;
         meetingUrl: string | null;
+        notes: string | null;
+        isOnline: boolean;
         googleEventId: string | null;
         recurringGroupId: string | null;
-    }>;
+        createdAt: Date;
+    } | import(".prisma/client").Prisma.BatchPayload>;
     searchCustomers(q: string, scheduleId?: string): Promise<({
+        schedules: {
+            id: string;
+        }[];
         orders: ({
             items: {
+                courseId: string;
                 id: string;
                 price: number;
                 orderId: string;
-                courseId: string;
             }[];
         } & {
             id: string;
@@ -184,53 +187,53 @@ export declare class SchedulesController {
             invoiceIssued: boolean;
             isLead: boolean;
         })[];
-        schedules: {
-            id: string;
-        }[];
     } & {
         id: string;
-        email: string | null;
-        name: string;
+        notes: string | null;
         createdAt: Date;
+        name: string;
         code: string | null;
+        deletedAt: Date | null;
+        email: string | null;
         phone: string;
         source: string | null;
-        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        deletedAt: Date | null;
     })[] | {
         isAssigned: boolean;
         tuitionStatus: "PAID" | "UNPAID" | "NOT_ENROLLED";
         unpaidAmount: number;
         id: string;
-        email: string | null;
-        name: string;
+        notes: string | null;
         createdAt: Date;
+        name: string;
         code: string | null;
+        deletedAt: Date | null;
+        email: string | null;
         phone: string;
         source: string | null;
-        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        deletedAt: Date | null;
     }[]>;
     addStudent(id: string, customerId: string): Promise<{
         id: string;
-        customerId: string;
         scheduleId: string;
+        customerId: string;
         isAttended: boolean;
     }>;
     getPotentialStudents(id: string): Promise<{
         isAssigned: boolean;
         tuitionStatus: "PAID" | "UNPAID" | "NOT_ENROLLED";
         debtAmount: number;
+        schedules: {
+            id: string;
+        }[];
         orders: ({
             items: {
+                courseId: string;
                 id: string;
                 price: number;
                 orderId: string;
-                courseId: string;
             }[];
         } & {
             id: string;
@@ -250,25 +253,32 @@ export declare class SchedulesController {
             invoiceIssued: boolean;
             isLead: boolean;
         })[];
-        schedules: {
-            id: string;
-        }[];
         id: string;
-        email: string | null;
-        name: string;
+        notes: string | null;
         createdAt: Date;
+        name: string;
         code: string | null;
+        deletedAt: Date | null;
+        email: string | null;
         phone: string;
         source: string | null;
-        notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        deletedAt: Date | null;
     }[]>;
     removeStudent(id: string, customerId: string): Promise<{
         id: string;
-        customerId: string;
         scheduleId: string;
+        customerId: string;
         isAttended: boolean;
+    }>;
+    bulkAddStudents(body: {
+        scheduleIds: string[];
+        customerId: string;
+    }): Promise<{
+        success: string[];
+        failed: {
+            id: string;
+            reason: string;
+        }[];
     }>;
 }

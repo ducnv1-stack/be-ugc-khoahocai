@@ -11,4 +11,5 @@ export declare class CreateOrderDto {
     discountValue?: number;
     paymentAmount?: number;
     primaryCourseId?: string;
+    customerNotes?: string;
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -20,7 +20,13 @@ export class CoursesController {
   @Get()
   @RequirePermissions('courses.view', 'courses.manage')
   findAll() {
-    return this.coursesService.findAll();
+    return this.coursesService.findAll(false);
+  }
+
+  @Get('trash')
+  @RequirePermissions('courses.manage')
+  findAllTrash() {
+    return this.coursesService.findAll(true);
   }
 
   @Get(':id')
@@ -33,5 +39,23 @@ export class CoursesController {
   @RequirePermissions('courses.manage')
   update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
     return this.coursesService.update(id, updateCourseDto);
+  }
+
+  @Delete(':id/permanent')
+  @RequirePermissions('courses.manage')
+  hardDelete(@Param('id') id: string, @Request() req: any) {
+    return this.coursesService.hardDelete(id, req.user);
+  }
+
+  @Patch(':id/restore')
+  @RequirePermissions('courses.manage')
+  restore(@Param('id') id: string, @Request() req: any) {
+    return this.coursesService.restore(id, req.user);
+  }
+
+  @Delete(':id')
+  @RequirePermissions('courses.manage')
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.coursesService.softDelete(id, req.user);
   }
 }

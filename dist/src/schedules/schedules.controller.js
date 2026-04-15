@@ -54,6 +54,9 @@ let SchedulesController = class SchedulesController {
     removeStudent(id, customerId) {
         return this.schedulesService.removeStudent(id, customerId);
     }
+    bulkAddStudents(body) {
+        return this.schedulesService.bulkAddStudents(body.scheduleIds, body.customerId);
+    }
 };
 exports.SchedulesController = SchedulesController;
 __decorate([
@@ -140,6 +143,13 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SchedulesController.prototype, "removeStudent", null);
+__decorate([
+    (0, common_1.Post)('bulk-students'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SchedulesController.prototype, "bulkAddStudents", null);
 exports.SchedulesController = SchedulesController = __decorate([
     (0, common_1.Controller)('schedules'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

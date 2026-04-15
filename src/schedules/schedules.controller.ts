@@ -61,4 +61,9 @@ export class SchedulesController {
   removeStudent(@Param('id') id: string, @Param('customerId') customerId: string) {
     return this.schedulesService.removeStudent(id, customerId);
   }
+
+  @Post('bulk-students')
+  bulkAddStudents(@Body() body: { scheduleIds: string[]; customerId: string }) {
+    return this.schedulesService.bulkAddStudents(body.scheduleIds, body.customerId);
+  }
 }

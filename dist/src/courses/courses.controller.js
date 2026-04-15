@@ -29,13 +29,25 @@ let CoursesController = class CoursesController {
         return this.coursesService.create(createCourseDto);
     }
     findAll() {
-        return this.coursesService.findAll();
+        return this.coursesService.findAll(false);
+    }
+    findAllTrash() {
+        return this.coursesService.findAll(true);
     }
     findOne(id) {
         return this.coursesService.findOne(id);
     }
     update(id, updateCourseDto) {
         return this.coursesService.update(id, updateCourseDto);
+    }
+    hardDelete(id, req) {
+        return this.coursesService.hardDelete(id, req.user);
+    }
+    restore(id, req) {
+        return this.coursesService.restore(id, req.user);
+    }
+    remove(id, req) {
+        return this.coursesService.softDelete(id, req.user);
     }
 };
 exports.CoursesController = CoursesController;
@@ -55,6 +67,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CoursesController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('trash'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CoursesController.prototype, "findAllTrash", null);
+__decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.RequirePermissions)('courses.view', 'courses.manage'),
     __param(0, (0, common_1.Param)('id')),
@@ -71,6 +90,33 @@ __decorate([
     __metadata("design:paramtypes", [String, update_course_dto_1.UpdateCourseDto]),
     __metadata("design:returntype", void 0)
 ], CoursesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id/permanent'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CoursesController.prototype, "hardDelete", null);
+__decorate([
+    (0, common_1.Patch)(':id/restore'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CoursesController.prototype, "restore", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CoursesController.prototype, "remove", null);
 exports.CoursesController = CoursesController = __decorate([
     (0, common_1.Controller)('courses'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),

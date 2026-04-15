@@ -18,7 +18,7 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, saleId: string) {
-    const { customerId, customerName, customerPhone, courseIds, discountType, discountValue, paymentAmount, primaryCourseId } = createOrderDto;
+    const { customerId, customerName, customerPhone, courseIds, discountType, discountValue, paymentAmount, primaryCourseId, customerNotes } = createOrderDto;
 
     let targetCustomerId = customerId;
     let isLead = false;
@@ -39,7 +39,7 @@ export class OrdersService {
             name: customerName || `Khách vãng lai ${customerPhone}`,
             phone: customerPhone,
             assignedSaleId: saleId,
-            notes: 'Khách hàng tạo nhanh từ luồng QR'
+            notes: customerNotes || 'Khách hàng tạo nhanh từ luồng QR'
           }
         });
       }

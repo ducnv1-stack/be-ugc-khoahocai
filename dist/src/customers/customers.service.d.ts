@@ -15,46 +15,50 @@ export declare class CustomersService {
         } | null;
     } & {
         id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
         code: string | null;
+        name: string;
         phone: string;
+        email: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
-        assignedSaleId: string | null;
+        createdAt: Date;
         deletedAt: Date | null;
+        assignedSaleId: string | null;
     }>;
     findAll(query?: {
         search?: string;
         skip?: number;
         take?: number;
+        onlyDeleted?: boolean;
     }): Promise<{
         isLead: boolean;
+        assignedSale: {
+            name: string;
+        } | null;
         orders: ({
             items: ({
                 course: {
                     id: string;
+                    code: string;
                     name: string;
                     createdAt: Date;
-                    code: string;
-                    description: string | null;
+                    deletedAt: Date | null;
+                    status: string;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    description: string | null;
                 };
             } & {
                 id: string;
-                price: number;
                 orderId: string;
                 courseId: string;
+                price: number;
             })[];
         } & {
             id: string;
             createdAt: Date;
-            status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
             saleId: string;
             totalPrice: number;
@@ -62,6 +66,7 @@ export declare class CustomersService {
             discountValue: number | null;
             finalPrice: number;
             paidAmount: number;
+            status: import(".prisma/client").$Enums.OrderStatus;
             qrCode: string | null;
             memo: string | null;
             memoEditable: boolean;
@@ -69,45 +74,79 @@ export declare class CustomersService {
             invoiceIssued: boolean;
             isLead: boolean;
         })[];
-        assignedSale: {
-            name: string;
-        } | null;
+        schedules: ({
+            schedule: {
+                course: {
+                    id: string;
+                    code: string;
+                    name: string;
+                    createdAt: Date;
+                    deletedAt: Date | null;
+                    status: string;
+                    price: number;
+                    duration: number;
+                    totalSessions: number;
+                    description: string | null;
+                };
+                instructor: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                notes: string | null;
+                createdAt: Date;
+                isOnline: boolean;
+                courseId: string;
+                instructorId: string;
+                startTime: Date;
+                endTime: Date;
+                maxCapacity: number;
+                meetingUrl: string | null;
+                googleEventId: string | null;
+                recurringGroupId: string | null;
+            };
+        } & {
+            id: string;
+            customerId: string;
+            scheduleId: string;
+            isAttended: boolean;
+        })[];
         id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
         code: string | null;
+        name: string;
         phone: string;
+        email: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
-        assignedSaleId: string | null;
+        createdAt: Date;
         deletedAt: Date | null;
+        assignedSaleId: string | null;
     }[]>;
     findOne(id: string): Promise<{
         orders: ({
             items: ({
                 course: {
                     id: string;
+                    code: string;
                     name: string;
                     createdAt: Date;
-                    code: string;
-                    description: string | null;
+                    deletedAt: Date | null;
+                    status: string;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    description: string | null;
                 };
             } & {
                 id: string;
-                price: number;
                 orderId: string;
                 courseId: string;
+                price: number;
             })[];
         } & {
             id: string;
             createdAt: Date;
-            status: import(".prisma/client").$Enums.OrderStatus;
             customerId: string;
             saleId: string;
             totalPrice: number;
@@ -115,6 +154,7 @@ export declare class CustomersService {
             discountValue: number | null;
             finalPrice: number;
             paidAmount: number;
+            status: import(".prisma/client").$Enums.OrderStatus;
             qrCode: string | null;
             memo: string | null;
             memoEditable: boolean;
@@ -124,42 +164,58 @@ export declare class CustomersService {
         })[];
     } & {
         id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
         code: string | null;
+        name: string;
         phone: string;
+        email: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
-        assignedSaleId: string | null;
+        createdAt: Date;
         deletedAt: Date | null;
+        assignedSaleId: string | null;
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, currentUser: any): Promise<{
         id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
         code: string | null;
+        name: string;
         phone: string;
+        email: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
-        assignedSaleId: string | null;
+        createdAt: Date;
         deletedAt: Date | null;
+        assignedSaleId: string | null;
     }>;
-    softDelete(id: string): Promise<{
+    softDelete(id: string, currentUser: any): Promise<{
         id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
         code: string | null;
+        name: string;
         phone: string;
+        email: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
-        assignedSaleId: string | null;
+        createdAt: Date;
         deletedAt: Date | null;
+        assignedSaleId: string | null;
+    }>;
+    restore(id: string, currentUser: any): Promise<{
+        id: string;
+        code: string | null;
+        name: string;
+        phone: string;
+        email: string | null;
+        source: string | null;
+        notes: string | null;
+        tags: string[];
+        createdAt: Date;
+        deletedAt: Date | null;
+        assignedSaleId: string | null;
+    }>;
+    hardDelete(id: string, currentUser: any): Promise<{
+        message: string;
     }>;
     deleteLeadCustomer(id: string): Promise<{
         message: string;

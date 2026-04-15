@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { AuditService } from '../audit/audit.service';
+import { DELETE_CONFIG } from '../common/configs/delete.config';
 import { SocketGateway } from '../socket/socket.gateway';
 
 @Injectable()
@@ -68,12 +69,12 @@ export class CustomersService {
     return newCustomer;
   }
 
-  async findAll(query?: { search?: string; skip?: number; take?: number }) {
-    const { search, skip = 0, take = 50 } = query || {};
+  async findAll(query?: { search?: string; skip?: number; take?: number; onlyDeleted?: boolean }) {
+    const { search, skip = 0, take = 50, onlyDeleted = false } = query || {};
     
     const customers = await this.prisma.customer.findMany({
       where: {
-        deletedAt: null,
+        deletedAt: onlyDeleted ? { not: null } : null,
         OR: search ? [
           { name: { contains: search, mode: 'insensitive' } },
           { phone: { contains: search } },
@@ -90,6 +91,16 @@ export class CustomersService {
             items: { include: { course: true } }
           },
           orderBy: { createdAt: 'desc' }
+        },
+        schedules: {
+          include: {
+            schedule: {
+              include: {
+                course: true,
+                instructor: { select: { name: true } }
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -149,11 +160,103 @@ export class CustomersService {
     });
   }
 
-  async softDelete(id: string) {
+  async softDelete(id: string, currentUser: any) {
+    if (!DELETE_CONFIG.ALLOW_ADMIN_DELETE) {
+      throw new BadRequestException('Tính năng xóa hiện đang bị vô hiệu hóa');
+    }
+
+    if (currentUser.role !== 'ADMIN') {
+      throw new BadRequestException('Chỉ ADMIN mới có quyền xóa dữ liệu');
+    }
+
+    const customer = await this.findOne(id);
+    
+    await this.auditService.logAction({
+      userId: currentUser.id,
+      action: 'SOFT_DELETE_CUSTOMER',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      oldData: { name: customer.name, phone: customer.phone }
+    });
+
     return this.prisma.customer.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
+  }
+
+  async restore(id: string, currentUser: any) {
+    if (currentUser.role !== 'ADMIN') {
+      throw new BadRequestException('Chỉ ADMIN mới có quyền khôi phục dữ liệu');
+    }
+
+    const customer = await this.prisma.customer.findFirst({
+      where: { id, deletedAt: { not: null } }
+    });
+
+    if (!customer) {
+      throw new NotFoundException('Không tìm thấy khách hàng trong thùng rác');
+    }
+
+    await this.auditService.logAction({
+      userId: currentUser.id,
+      action: 'RESTORE_CUSTOMER',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      newData: { name: customer.name, phone: customer.phone }
+    });
+
+    return this.prisma.customer.update({
+      where: { id },
+      data: { deletedAt: null }
+    });
+  }
+
+  async hardDelete(id: string, currentUser: any) {
+    if (!DELETE_CONFIG.ALLOW_ADMIN_DELETE) {
+      throw new BadRequestException('Tính năng xóa hiện đang bị vô hiệu hóa');
+    }
+
+    if (currentUser.role !== 'ADMIN') {
+      throw new BadRequestException('Chỉ ADMIN mới có quyền xóa vĩnh viễn dữ liệu');
+    }
+
+    const customer = await this.prisma.customer.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: { orders: true }
+    });
+
+    if (!customer) {
+      throw new BadRequestException('Chỉ có thể xóa vĩnh viễn dữ liệu đã nằm trong thùng rác');
+    }
+
+    // Kiểm tra an toàn: không xóa nếu đã có thanh toán (tùy chọn, nhưng nên giữ để an toàn kế toán)
+    const hasPaidOrder = customer.orders.some(o => o.paidAmount > 0);
+    if (hasPaidOrder) {
+      throw new BadRequestException('Không thể xóa vĩnh viễn khách hàng đã có lịch sử thanh toán');
+    }
+
+    await this.auditService.logAction({
+      userId: currentUser.id,
+      action: 'HARD_DELETE_CUSTOMER',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      oldData: { name: customer.name, phone: customer.phone }
+    });
+
+    // Thực hiện xóa cứng tương tự deleteLeadCustomer nhưng dành cho khách đã trong trash
+    await this.prisma.$transaction(async (tx) => {
+      for (const order of customer.orders) {
+        await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+        await tx.payment.deleteMany({ where: { orderId: order.id } });
+        await tx.orderHistory.deleteMany({ where: { orderId: order.id } });
+        await tx.refund.deleteMany({ where: { orderId: order.id } });
+        await tx.order.delete({ where: { id: order.id } });
+      }
+      await tx.customer.delete({ where: { id } });
+    });
+
+    return { message: 'Đã xóa vĩnh viễn khách hàng thành công' };
   }
 
   // Xóa cứng khách tạm (chỉ dùng khi isLead và chưa thanh toán)

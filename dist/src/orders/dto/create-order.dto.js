@@ -25,6 +25,7 @@ class CreateOrderDto {
     discountValue;
     paymentAmount;
     primaryCourseId;
+    customerNotes;
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
@@ -70,4 +71,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "primaryCourseId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "customerNotes", void 0);
 //# sourceMappingURL=create-order.dto.js.map

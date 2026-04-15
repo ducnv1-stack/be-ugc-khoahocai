@@ -7,45 +7,85 @@ export declare class CoursesService {
     create(createCourseDto: CreateCourseDto): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
         code: string;
-        description: string | null;
         price: number;
         duration: number;
-        status: string;
         totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
+    findAll(onlyDeleted?: boolean): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
         name: string;
-        createdAt: Date;
         code: string;
-        description: string | null;
         price: number;
         duration: number;
-        status: string;
         totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
         code: string;
-        description: string | null;
         price: number;
         duration: number;
-        status: string;
         totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
     update(id: string, updateCourseDto: UpdateCourseDto): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
         code: string;
-        description: string | null;
         price: number;
         duration: number;
-        status: string;
         totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+    }>;
+    softDelete(id: string, currentUser: any): Promise<{
+        id: string;
+        name: string;
+        code: string;
+        price: number;
+        duration: number;
+        totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+    }>;
+    restore(id: string, currentUser: any): Promise<{
+        id: string;
+        name: string;
+        code: string;
+        price: number;
+        duration: number;
+        totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+    }>;
+    hardDelete(id: string, currentUser: any): Promise<{
+        id: string;
+        name: string;
+        code: string;
+        price: number;
+        duration: number;
+        totalSessions: number;
+        description: string | null;
+        status: string;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
 }

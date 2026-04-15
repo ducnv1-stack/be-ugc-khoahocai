@@ -27,6 +27,17 @@ export class CustomersController {
     });
   }
 
+  @Get('trash')
+  @RequirePermissions('customers.manage')
+  findAllTrash(@Query('search') search?: string, @Query('skip') skip?: string, @Query('take') take?: string) {
+    return this.customersService.findAll({
+      search,
+      skip: skip ? parseInt(skip) : undefined,
+      take: take ? parseInt(take) : undefined,
+      onlyDeleted: true,
+    });
+  }
+
   @Get(':id')
   @RequirePermissions('customers.view', 'customers.manage')
   findOne(@Param('id') id: string) {
@@ -45,9 +56,21 @@ export class CustomersController {
     return this.customersService.deleteLeadCustomer(id);
   }
 
+  @Delete(':id/permanent')
+  @RequirePermissions('customers.manage')
+  hardDelete(@Param('id') id: string, @Request() req: any) {
+    return this.customersService.hardDelete(id, req.user);
+  }
+
+  @Patch(':id/restore')
+  @RequirePermissions('customers.manage')
+  restore(@Param('id') id: string, @Request() req: any) {
+    return this.customersService.restore(id, req.user);
+  }
+
   @Delete(':id')
   @RequirePermissions('customers.manage')
-  remove(@Param('id') id: string) {
-    return this.customersService.softDelete(id);
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.customersService.softDelete(id, req.user);
   }
 }

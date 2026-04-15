@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoursesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const delete_config_1 = require("../common/configs/delete.config");
 let CoursesService = class CoursesService {
     prisma;
     constructor(prisma) {
@@ -28,8 +29,11 @@ let CoursesService = class CoursesService {
             data: createCourseDto,
         });
     }
-    findAll() {
+    findAll(onlyDeleted = false) {
         return this.prisma.course.findMany({
+            where: {
+                deletedAt: onlyDeleted ? { not: null } : null,
+            },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -54,6 +58,62 @@ let CoursesService = class CoursesService {
         return this.prisma.course.update({
             where: { id },
             data: updateCourseDto,
+        });
+    }
+    async softDelete(id, currentUser) {
+        if (!delete_config_1.DELETE_CONFIG.ALLOW_ADMIN_DELETE) {
+            throw new common_1.BadRequestException('Tính năng xóa hiện đang bị vô hiệu hóa');
+        }
+        if (currentUser.role !== 'ADMIN') {
+            throw new common_1.BadRequestException('Chỉ ADMIN mới có quyền xóa dữ liệu');
+        }
+        await this.findOne(id);
+        return this.prisma.course.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+    }
+    async restore(id, currentUser) {
+        if (currentUser.role !== 'ADMIN') {
+            throw new common_1.BadRequestException('Chỉ ADMIN mới có quyền khôi phục dữ liệu');
+        }
+        const course = await this.prisma.course.findFirst({
+            where: { id, deletedAt: { not: null } }
+        });
+        if (!course) {
+            throw new common_1.NotFoundException('Không tìm thấy khóa học trong thùng rác');
+        }
+        return this.prisma.course.update({
+            where: { id },
+            data: { deletedAt: null }
+        });
+    }
+    async hardDelete(id, currentUser) {
+        if (!delete_config_1.DELETE_CONFIG.ALLOW_ADMIN_DELETE) {
+            throw new common_1.BadRequestException('Tính năng xóa hiện đang bị vô hiệu hóa');
+        }
+        if (currentUser.role !== 'ADMIN') {
+            throw new common_1.BadRequestException('Chỉ ADMIN mới có quyền xóa vĩnh viễn dữ liệu');
+        }
+        const course = await this.prisma.course.findFirst({
+            where: { id, deletedAt: { not: null } },
+            include: {
+                _count: {
+                    select: {
+                        orderItems: true,
+                        schedules: true
+                    }
+                }
+            }
+        });
+        if (!course) {
+            throw new common_1.BadRequestException('Chỉ có thể xóa vĩnh viễn dữ liệu đã nằm trong thùng rác');
+        }
+        if (course._count.orderItems > 0 || course._count.schedules > 0) {
+            throw new common_1.BadRequestException(`Không thể xóa vĩnh viễn khóa học này vì đang có ${course._count.orderItems} đơn hàng và ${course._count.schedules} lịch học liên quan. Bạn nên ẩn (ACTIVE -> INACTIVE) khóa học thay vì xóa vĩnh viễn.`);
+        }
+        return this.prisma.course.delete({
+            where: { id }
         });
     }
 };

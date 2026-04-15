@@ -35,6 +35,14 @@ let CustomersController = class CustomersController {
             take: take ? parseInt(take) : undefined,
         });
     }
+    findAllTrash(search, skip, take) {
+        return this.customersService.findAll({
+            search,
+            skip: skip ? parseInt(skip) : undefined,
+            take: take ? parseInt(take) : undefined,
+            onlyDeleted: true,
+        });
+    }
     findOne(id) {
         return this.customersService.findOne(id);
     }
@@ -44,8 +52,14 @@ let CustomersController = class CustomersController {
     deleteLead(id) {
         return this.customersService.deleteLeadCustomer(id);
     }
-    remove(id) {
-        return this.customersService.softDelete(id);
+    hardDelete(id, req) {
+        return this.customersService.hardDelete(id, req.user);
+    }
+    restore(id, req) {
+        return this.customersService.restore(id, req.user);
+    }
+    remove(id, req) {
+        return this.customersService.softDelete(id, req.user);
     }
 };
 exports.CustomersController = CustomersController;
@@ -68,6 +82,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('trash'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    __param(0, (0, common_1.Query)('search')),
+    __param(1, (0, common_1.Query)('skip')),
+    __param(2, (0, common_1.Query)('take')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "findAllTrash", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.RequirePermissions)('customers.view', 'customers.manage'),
@@ -95,11 +119,30 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "deleteLead", null);
 __decorate([
+    (0, common_1.Delete)(':id/permanent'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "hardDelete", null);
+__decorate([
+    (0, common_1.Patch)(':id/restore'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "restore", null);
+__decorate([
     (0, common_1.Delete)(':id'),
     (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "remove", null);
 exports.CustomersController = CustomersController = __decorate([

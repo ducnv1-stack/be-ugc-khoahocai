@@ -40,4 +40,8 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   primaryCourseId?: string; // Khóa học đại diện để đưa mã vào Memo QR
+
+  @IsString()
+  @IsOptional()
+  customerNotes?: string;
 }

@@ -297,6 +297,25 @@ let SchedulesService = class SchedulesService {
             where: { scheduleId_customerId: { scheduleId, customerId } }
         });
     }
+    async bulkAddStudents(scheduleIds, customerId) {
+        const results = {
+            success: [],
+            failed: [],
+        };
+        for (const scheduleId of scheduleIds) {
+            try {
+                await this.addStudent(scheduleId, customerId);
+                results.success.push(scheduleId);
+            }
+            catch (err) {
+                results.failed.push({
+                    id: scheduleId,
+                    reason: err.message || 'Lỗi không xác định',
+                });
+            }
+        }
+        return results;
+    }
 };
 exports.SchedulesService = SchedulesService;
 exports.SchedulesService = SchedulesService = __decorate([

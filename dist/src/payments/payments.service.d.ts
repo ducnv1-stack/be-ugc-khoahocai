@@ -34,12 +34,12 @@ export declare class PaymentsService {
                 name: string;
                 createdAt: Date;
                 code: string | null;
+                deletedAt: Date | null;
                 phone: string;
                 source: string | null;
                 notes: string | null;
                 tags: string[];
                 assignedSaleId: string | null;
-                deletedAt: Date | null;
             };
             items: ({
                 course: {
@@ -50,8 +50,9 @@ export declare class PaymentsService {
                     description: string | null;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    status: string;
+                    deletedAt: Date | null;
                 };
             } & {
                 id: string;
