@@ -6,6 +6,8 @@ export declare class CreateOrderDto {
     customerId?: string;
     customerName?: string;
     customerPhone?: string;
+    customerCccd?: string;
+    customerAddress?: string;
     courseIds: string[];
     discountType?: DiscountType;
     discountValue?: number;

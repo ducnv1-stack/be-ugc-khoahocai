@@ -12,6 +12,8 @@ export declare class PaymentsController {
                 code: string | null;
                 deletedAt: Date | null;
                 phone: string;
+                cccd: string | null;
+                address: string | null;
                 source: string | null;
                 notes: string | null;
                 tags: string[];
@@ -26,8 +28,8 @@ export declare class PaymentsController {
                     description: string | null;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    status: string;
                     deletedAt: Date | null;
                 };
             } & {

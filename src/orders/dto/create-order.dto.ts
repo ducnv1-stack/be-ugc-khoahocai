@@ -18,6 +18,14 @@ export class CreateOrderDto {
   @IsOptional()
   customerPhone?: string;
 
+  @IsString()
+  @IsOptional()
+  customerCccd?: string;
+
+  @IsString()
+  @IsOptional()
+  customerAddress?: string;
+
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty()

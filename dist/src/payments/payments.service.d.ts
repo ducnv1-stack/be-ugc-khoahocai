@@ -36,6 +36,8 @@ export declare class PaymentsService {
                 code: string | null;
                 deletedAt: Date | null;
                 phone: string;
+                cccd: string | null;
+                address: string | null;
                 source: string | null;
                 notes: string | null;
                 tags: string[];
@@ -50,8 +52,8 @@ export declare class PaymentsService {
                     description: string | null;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    status: string;
                     deletedAt: Date | null;
                 };
             } & {

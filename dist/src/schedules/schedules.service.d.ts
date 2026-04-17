@@ -227,6 +227,8 @@ export declare class SchedulesService {
         code: string | null;
         deletedAt: Date | null;
         phone: string;
+        cccd: string | null;
+        address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
@@ -242,6 +244,8 @@ export declare class SchedulesService {
         code: string | null;
         deletedAt: Date | null;
         phone: string;
+        cccd: string | null;
+        address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
@@ -286,6 +290,8 @@ export declare class SchedulesService {
         code: string | null;
         deletedAt: Date | null;
         phone: string;
+        cccd: string | null;
+        address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];

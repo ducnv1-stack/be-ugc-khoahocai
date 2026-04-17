@@ -72,6 +72,8 @@ model Customer {
   name           String
   phone          String    @unique // Ràng buộc không cho tạo trùng số điện thoại
   email          String?
+  cccd           String? // Thêm CCCD để xuất hóa đơn
+  address        String? // Thêm Địa chỉ để xuất hóa đơn
   source         String? // Nguồn khách (Facebook, Google,...)
   notes          String?
   tags           String[]  @default([])

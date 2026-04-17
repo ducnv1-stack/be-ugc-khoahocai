@@ -18,7 +18,7 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, saleId: string) {
-    const { customerId, customerName, customerPhone, courseIds, discountType, discountValue, paymentAmount, primaryCourseId, customerNotes } = createOrderDto;
+    const { customerId, customerName, customerPhone, customerCccd, customerAddress, courseIds, discountType, discountValue, paymentAmount, primaryCourseId, customerNotes } = createOrderDto;
 
     let targetCustomerId = customerId;
     let isLead = false;
@@ -38,10 +38,22 @@ export class OrdersService {
             code: nextCode,
             name: customerName || `Khách vãng lai ${customerPhone}`,
             phone: customerPhone,
+            cccd: customerCccd,
+            address: customerAddress,
             assignedSaleId: saleId,
             notes: customerNotes || 'Khách hàng tạo nhanh từ luồng QR'
           }
         });
+      } else {
+        if (customerCccd || customerAddress) {
+          customer = await this.prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+              ...(customerCccd && { cccd: customerCccd }),
+              ...(customerAddress && { address: customerAddress })
+            }
+          });
+        }
       }
       targetCustomerId = customer.id;
       isLead = true;
