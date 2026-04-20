@@ -9,19 +9,19 @@ export declare class CustomersController {
             name: string;
         } | null;
     } & {
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     getStats(): Promise<{
         active: number;
@@ -31,40 +31,37 @@ export declare class CustomersController {
     findAll(search?: string, page?: string, limit?: string, type?: 'lead' | 'regular' | 'all'): Promise<{
         items: {
             isLead: boolean;
-            assignedSale: {
-                name: string;
-            } | null;
             orders: ({
                 items: ({
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                 } & {
                     id: string;
+                    price: number;
                     orderId: string;
                     courseId: string;
-                    price: number;
                 })[];
             } & {
                 id: string;
                 createdAt: Date;
                 customerId: string;
+                status: import(".prisma/client").$Enums.OrderStatus;
                 saleId: string;
                 totalPrice: number;
                 discountType: import(".prisma/client").$Enums.DiscountType | null;
                 discountValue: number | null;
                 finalPrice: number;
                 paidAmount: number;
-                status: import(".prisma/client").$Enums.OrderStatus;
                 qrCode: string | null;
                 memo: string | null;
                 memoEditable: boolean;
@@ -75,25 +72,25 @@ export declare class CustomersController {
             schedules: ({
                 schedule: {
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                     instructor: {
                         name: string;
                     };
                 } & {
-                    notes: string | null;
                     id: string;
-                    createdAt: Date;
                     isOnline: boolean;
+                    createdAt: Date;
+                    notes: string | null;
                     courseId: string;
                     instructorId: string;
                     startTime: Date;
@@ -105,63 +102,63 @@ export declare class CustomersController {
                 };
             } & {
                 id: string;
-                customerId: string;
                 scheduleId: string;
+                customerId: string;
                 isAttended: boolean;
             })[];
-            name: string;
-            phone: string;
+            assignedSale: {
+                name: string;
+            } | null;
+            id: string;
             email: string | null;
+            name: string | null;
+            createdAt: Date;
+            code: string | null;
+            deletedAt: Date | null;
+            phone: string;
             cccd: string | null;
             address: string | null;
             source: string | null;
             notes: string | null;
             tags: string[];
             assignedSaleId: string | null;
-            id: string;
-            code: string | null;
-            createdAt: Date;
-            deletedAt: Date | null;
         }[];
         total: number;
     }>;
     findAllTrash(search?: string, page?: string, limit?: string): Promise<{
         items: {
             isLead: boolean;
-            assignedSale: {
-                name: string;
-            } | null;
             orders: ({
                 items: ({
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                 } & {
                     id: string;
+                    price: number;
                     orderId: string;
                     courseId: string;
-                    price: number;
                 })[];
             } & {
                 id: string;
                 createdAt: Date;
                 customerId: string;
+                status: import(".prisma/client").$Enums.OrderStatus;
                 saleId: string;
                 totalPrice: number;
                 discountType: import(".prisma/client").$Enums.DiscountType | null;
                 discountValue: number | null;
                 finalPrice: number;
                 paidAmount: number;
-                status: import(".prisma/client").$Enums.OrderStatus;
                 qrCode: string | null;
                 memo: string | null;
                 memoEditable: boolean;
@@ -172,25 +169,25 @@ export declare class CustomersController {
             schedules: ({
                 schedule: {
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                     instructor: {
                         name: string;
                     };
                 } & {
-                    notes: string | null;
                     id: string;
-                    createdAt: Date;
                     isOnline: boolean;
+                    createdAt: Date;
+                    notes: string | null;
                     courseId: string;
                     instructorId: string;
                     startTime: Date;
@@ -202,23 +199,26 @@ export declare class CustomersController {
                 };
             } & {
                 id: string;
-                customerId: string;
                 scheduleId: string;
+                customerId: string;
                 isAttended: boolean;
             })[];
-            name: string;
-            phone: string;
+            assignedSale: {
+                name: string;
+            } | null;
+            id: string;
             email: string | null;
+            name: string | null;
+            createdAt: Date;
+            code: string | null;
+            deletedAt: Date | null;
+            phone: string;
             cccd: string | null;
             address: string | null;
             source: string | null;
             notes: string | null;
             tags: string[];
             assignedSaleId: string | null;
-            id: string;
-            code: string | null;
-            createdAt: Date;
-            deletedAt: Date | null;
         }[];
         total: number;
     }>;
@@ -226,34 +226,34 @@ export declare class CustomersController {
         orders: ({
             items: ({
                 course: {
-                    name: string;
                     id: string;
-                    code: string;
+                    name: string;
                     createdAt: Date;
-                    deletedAt: Date | null;
+                    code: string;
                     description: string | null;
-                    status: string;
                     price: number;
                     duration: number;
+                    status: string;
                     totalSessions: number;
+                    deletedAt: Date | null;
                 };
             } & {
                 id: string;
+                price: number;
                 orderId: string;
                 courseId: string;
-                price: number;
             })[];
         } & {
             id: string;
             createdAt: Date;
             customerId: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
             finalPrice: number;
             paidAmount: number;
-            status: import(".prisma/client").$Enums.OrderStatus;
             qrCode: string | null;
             memo: string | null;
             memoEditable: boolean;
@@ -262,34 +262,34 @@ export declare class CustomersController {
             isLead: boolean;
         })[];
     } & {
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, req: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     deleteLead(id: string): Promise<{
         message: string;
@@ -298,33 +298,33 @@ export declare class CustomersController {
         message: string;
     }>;
     restore(id: string, req: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     remove(id: string, req: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
 }

@@ -19,7 +19,7 @@ export declare class SchedulesController {
         students: ({
             customer: {
                 id: string;
-                name: string;
+                name: string | null;
                 code: string | null;
                 phone: string;
             };
@@ -56,7 +56,7 @@ export declare class SchedulesController {
         students: ({
             customer: {
                 id: string;
-                name: string;
+                name: string | null;
                 code: string | null;
                 phone: string;
             };
@@ -190,7 +190,7 @@ export declare class SchedulesController {
     } & {
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
@@ -207,7 +207,7 @@ export declare class SchedulesController {
         unpaidAmount: number;
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
@@ -259,7 +259,7 @@ export declare class SchedulesController {
         }[];
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;

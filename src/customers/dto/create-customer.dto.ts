@@ -2,8 +2,8 @@ import { IsString, IsEmail, IsOptional, IsArray, IsNotEmpty } from 'class-valida
 
 export class CreateCustomerDto {
   @IsString()
-  @IsNotEmpty()
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
   @IsNotEmpty()

@@ -31,7 +31,7 @@ export declare class StatsService {
     }[]>;
     getRecentOrders(limit?: number): Promise<({
         customer: {
-            name: string;
+            name: string | null;
             code: string | null;
             phone: string;
         };

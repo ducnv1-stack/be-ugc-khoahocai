@@ -21,7 +21,7 @@ export declare class SchedulesService {
         students: ({
             customer: {
                 id: string;
-                name: string;
+                name: string | null;
                 code: string | null;
                 phone: string;
             };
@@ -58,7 +58,7 @@ export declare class SchedulesService {
         students: ({
             customer: {
                 id: string;
-                name: string;
+                name: string | null;
                 code: string | null;
                 phone: string;
             };
@@ -222,7 +222,7 @@ export declare class SchedulesService {
     } & {
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
@@ -239,7 +239,7 @@ export declare class SchedulesService {
         unpaidAmount: number;
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;
@@ -285,7 +285,7 @@ export declare class SchedulesService {
         }[];
         id: string;
         email: string | null;
-        name: string;
+        name: string | null;
         createdAt: Date;
         code: string | null;
         deletedAt: Date | null;

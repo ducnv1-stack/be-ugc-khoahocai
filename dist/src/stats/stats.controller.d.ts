@@ -31,7 +31,7 @@ export declare class StatsController {
     }[]>;
     getRecentOrders(limit?: string): Promise<({
         customer: {
-            name: string;
+            name: string | null;
             code: string | null;
             phone: string;
         };

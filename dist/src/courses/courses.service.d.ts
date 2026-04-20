@@ -12,8 +12,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     findAll(onlyDeleted?: boolean): import(".prisma/client").Prisma.PrismaPromise<{
@@ -24,8 +24,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }[]>;
     findOne(id: string): Promise<{
@@ -36,8 +36,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     update(id: string, updateCourseDto: UpdateCourseDto): Promise<{
@@ -48,8 +48,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     softDelete(id: string, currentUser: any): Promise<{
@@ -60,8 +60,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     restore(id: string, currentUser: any): Promise<{
@@ -72,8 +72,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     hardDelete(id: string, currentUser: any): Promise<{
@@ -84,8 +84,8 @@ export declare class CoursesService {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
 }

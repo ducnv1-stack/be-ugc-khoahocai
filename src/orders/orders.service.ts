@@ -36,7 +36,7 @@ export class OrdersService {
         customer = await this.prisma.customer.create({
           data: {
             code: nextCode,
-            name: customerName || `Khách vãng lai ${customerPhone}`,
+            name: customerName,
             phone: customerPhone,
             cccd: customerCccd,
             address: customerAddress,

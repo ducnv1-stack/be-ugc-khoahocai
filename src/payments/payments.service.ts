@@ -185,7 +185,7 @@ export class PaymentsService {
           });
 
           // Cập nhật tên khách hàng nếu hiện tại là tên tạm
-          if (accountName && (order.customer.name.includes('Khách vãng lai') || order.customer.name === order.customer.phone)) {
+          if (accountName && (!order.customer.name || order.customer.name.includes('Khách vãng lai') || order.customer.name === order.customer.phone)) {
             finalCustomerName = accountName.toUpperCase();
             await tx.customer.update({
               where: { id: order.customerId },

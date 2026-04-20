@@ -31,7 +31,7 @@ export declare class PaymentsService {
             customer: {
                 id: string;
                 email: string | null;
-                name: string;
+                name: string | null;
                 createdAt: Date;
                 code: string | null;
                 deletedAt: Date | null;
@@ -52,8 +52,8 @@ export declare class PaymentsService {
                     description: string | null;
                     price: number;
                     duration: number;
-                    totalSessions: number;
                     status: string;
+                    totalSessions: number;
                     deletedAt: Date | null;
                 };
             } & {

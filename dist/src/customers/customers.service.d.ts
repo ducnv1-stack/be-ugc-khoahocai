@@ -14,19 +14,19 @@ export declare class CustomersService {
             name: string;
         } | null;
     } & {
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     findAll(query?: {
         search?: string;
@@ -37,40 +37,37 @@ export declare class CustomersService {
     }): Promise<{
         items: {
             isLead: boolean;
-            assignedSale: {
-                name: string;
-            } | null;
             orders: ({
                 items: ({
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                 } & {
                     id: string;
+                    price: number;
                     orderId: string;
                     courseId: string;
-                    price: number;
                 })[];
             } & {
                 id: string;
                 createdAt: Date;
                 customerId: string;
+                status: import(".prisma/client").$Enums.OrderStatus;
                 saleId: string;
                 totalPrice: number;
                 discountType: import(".prisma/client").$Enums.DiscountType | null;
                 discountValue: number | null;
                 finalPrice: number;
                 paidAmount: number;
-                status: import(".prisma/client").$Enums.OrderStatus;
                 qrCode: string | null;
                 memo: string | null;
                 memoEditable: boolean;
@@ -81,25 +78,25 @@ export declare class CustomersService {
             schedules: ({
                 schedule: {
                     course: {
-                        name: string;
                         id: string;
-                        code: string;
+                        name: string;
                         createdAt: Date;
-                        deletedAt: Date | null;
+                        code: string;
                         description: string | null;
-                        status: string;
                         price: number;
                         duration: number;
+                        status: string;
                         totalSessions: number;
+                        deletedAt: Date | null;
                     };
                     instructor: {
                         name: string;
                     };
                 } & {
-                    notes: string | null;
                     id: string;
-                    createdAt: Date;
                     isOnline: boolean;
+                    createdAt: Date;
+                    notes: string | null;
                     courseId: string;
                     instructorId: string;
                     startTime: Date;
@@ -111,23 +108,26 @@ export declare class CustomersService {
                 };
             } & {
                 id: string;
-                customerId: string;
                 scheduleId: string;
+                customerId: string;
                 isAttended: boolean;
             })[];
-            name: string;
-            phone: string;
+            assignedSale: {
+                name: string;
+            } | null;
+            id: string;
             email: string | null;
+            name: string | null;
+            createdAt: Date;
+            code: string | null;
+            deletedAt: Date | null;
+            phone: string;
             cccd: string | null;
             address: string | null;
             source: string | null;
             notes: string | null;
             tags: string[];
             assignedSaleId: string | null;
-            id: string;
-            code: string | null;
-            createdAt: Date;
-            deletedAt: Date | null;
         }[];
         total: number;
     }>;
@@ -140,34 +140,34 @@ export declare class CustomersService {
         orders: ({
             items: ({
                 course: {
-                    name: string;
                     id: string;
-                    code: string;
+                    name: string;
                     createdAt: Date;
-                    deletedAt: Date | null;
+                    code: string;
                     description: string | null;
-                    status: string;
                     price: number;
                     duration: number;
+                    status: string;
                     totalSessions: number;
+                    deletedAt: Date | null;
                 };
             } & {
                 id: string;
+                price: number;
                 orderId: string;
                 courseId: string;
-                price: number;
             })[];
         } & {
             id: string;
             createdAt: Date;
             customerId: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
             discountValue: number | null;
             finalPrice: number;
             paidAmount: number;
-            status: import(".prisma/client").$Enums.OrderStatus;
             qrCode: string | null;
             memo: string | null;
             memoEditable: boolean;
@@ -176,64 +176,64 @@ export declare class CustomersService {
             isLead: boolean;
         })[];
     } & {
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, currentUser: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     softDelete(id: string, currentUser: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     restore(id: string, currentUser: any): Promise<{
-        name: string;
-        phone: string;
+        id: string;
         email: string | null;
+        name: string | null;
+        createdAt: Date;
+        code: string | null;
+        deletedAt: Date | null;
+        phone: string;
         cccd: string | null;
         address: string | null;
         source: string | null;
         notes: string | null;
         tags: string[];
         assignedSaleId: string | null;
-        id: string;
-        code: string | null;
-        createdAt: Date;
-        deletedAt: Date | null;
     }>;
     hardDelete(id: string, currentUser: any): Promise<{
         message: string;

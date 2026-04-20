@@ -155,7 +155,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                         isLead: false
                     }
                 });
-                if (accountName && (order.customer.name.includes('Khách vãng lai') || order.customer.name === order.customer.phone)) {
+                if (accountName && (!order.customer.name || order.customer.name.includes('Khách vãng lai') || order.customer.name === order.customer.phone)) {
                     finalCustomerName = accountName.toUpperCase();
                     await tx.customer.update({
                         where: { id: order.customerId },
