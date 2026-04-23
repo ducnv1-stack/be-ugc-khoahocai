@@ -22,8 +22,8 @@ export declare class OrdersController {
                 description: string | null;
                 price: number;
                 duration: number;
-                status: string;
                 totalSessions: number;
+                status: string;
                 deletedAt: Date | null;
             };
         } & {
@@ -87,8 +87,8 @@ export declare class OrdersController {
                 description: string | null;
                 price: number;
                 duration: number;
-                status: string;
                 totalSessions: number;
+                status: string;
                 deletedAt: Date | null;
             };
         } & {

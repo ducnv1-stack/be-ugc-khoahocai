@@ -47,8 +47,8 @@ export declare class CustomersService {
                         description: string | null;
                         price: number;
                         duration: number;
-                        status: string;
                         totalSessions: number;
+                        status: string;
                         deletedAt: Date | null;
                     };
                 } & {
@@ -85,8 +85,8 @@ export declare class CustomersService {
                         description: string | null;
                         price: number;
                         duration: number;
-                        status: string;
                         totalSessions: number;
+                        status: string;
                         deletedAt: Date | null;
                     };
                     instructor: {
@@ -147,8 +147,8 @@ export declare class CustomersService {
                     description: string | null;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
+                    status: string;
                     deletedAt: Date | null;
                 };
             } & {

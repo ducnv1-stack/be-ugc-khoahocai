@@ -46,6 +46,17 @@ enum ReminderStatus {
   SENT
 }
 
+enum ExpenseStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum ExpenseNature {
+  FIXED
+  VARIABLE
+}
+
 // --- Người dùng Hệ thống ---
 model User {
   id             String    @id @default(uuid())
@@ -63,6 +74,8 @@ model User {
   schedules Schedule[] @relation("InstructorSchedules")
   auditLogs AuditLog[]
   notifications Notification[]
+  createdExpenses SystemExpense[] @relation("ExpenseCreatedBy")
+  approvedExpenses SystemExpense[] @relation("ExpenseApprovedBy")
 }
 
 // --- Khách hàng ---
@@ -305,12 +318,32 @@ model Notification {
 
 // --- Quản lý Chi phí ---
 model SystemExpense {
-  id          String   @id @default(uuid())
-  name        String
-  amount      Float
-  type        String // "ADVERTISING", "OPERATIONS", "EQUIPMENT"
-  notes       String?
-  date        DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String        @id @default(uuid())
+  name             String
+  amount           Float
+  type             String // Giữ lại để tương thích dữ liệu cũ, map như sub-category
+  category         String        @default("OTHER")
+  subCategory      String?
+  costCenter       String        @default("OPERATIONS")
+  paymentMethod    String        @default("BANK_TRANSFER")
+  status           ExpenseStatus @default(DRAFT)
+  nature           ExpenseNature @default(VARIABLE)
+  vendorName       String?
+  referenceType    String?
+  referenceId      String?
+  notes            String?
+  date             DateTime      @default(now())
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  createdById      String?
+  approvedById     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  createdBy User? @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
+  approvedBy User? @relation("ExpenseApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([date, status])
+  @@index([category, subCategory])
+  @@index([costCenter])
 }

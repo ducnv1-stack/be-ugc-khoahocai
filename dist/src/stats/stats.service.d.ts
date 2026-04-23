@@ -8,7 +8,7 @@ export declare class StatsService {
         ordersToday: number;
         totalCashflow: number;
         realRevenue: any;
-        totalExpenses: number;
+        totalExpenses: any;
         netProfit: number;
         conversionRate: number;
     }>;
@@ -19,7 +19,7 @@ export declare class StatsService {
             cashflow: number;
             revenue: number;
             orders: number;
-            expenses: number;
+            expenses: any;
         }[];
     }>;
     getTopCourses(limit?: number): Promise<{

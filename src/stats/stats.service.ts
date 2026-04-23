@@ -50,11 +50,11 @@ export class StatsService {
     const realRevenue = (revenueStats as any)[0]?.realRevenue || 0;
 
     // 5. Chi phí (Expenses)
-    const expensesThisMonthAgg = await this.prisma.systemExpense.aggregate({
-      where: { date: { gte: startOfMonth } },
+    const expensesThisMonthAgg = await (this.prisma.systemExpense as any).aggregate({
+      where: { date: { gte: startOfMonth }, status: 'CONFIRMED' },
       _sum: { amount: true }
     });
-    const expensesThisMonth = expensesThisMonthAgg._sum.amount || 0;
+    const expensesThisMonth = expensesThisMonthAgg?._sum?.amount || 0;
 
     // 6. Lợi nhuận (Profit) = Doanh thu thực tế - Chi phí
     const profitThisMonth = realRevenue - expensesThisMonth;
@@ -92,8 +92,8 @@ export class StatsService {
           _count: { id: true }
         });
 
-        const expAgg = await this.prisma.systemExpense.aggregate({
-          where: { date: { gte: start, lte: end } },
+        const expAgg = await (this.prisma.systemExpense as any).aggregate({
+          where: { date: { gte: start, lte: end }, status: 'CONFIRMED' },
           _sum: { amount: true }
         });
 
@@ -102,7 +102,7 @@ export class StatsService {
           cashflow: cashAgg._sum.paidAmount || 0,
           revenue: cashAgg._sum.paidAmount || 0,
           orders: cashAgg._count.id || 0,
-          expenses: expAgg._sum.amount || 0,
+          expenses: expAgg?._sum?.amount || 0,
         };
       })
     );

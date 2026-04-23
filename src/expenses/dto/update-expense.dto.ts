@@ -7,16 +7,19 @@ import {
   Min,
 } from 'class-validator';
 
-export class CreateExpenseDto {
+export class UpdateExpenseDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  amount: number;
+  amount?: number;
 
+  @IsOptional()
   @IsString()
-  type: string;
+  type?: string;
 
   @IsOptional()
   @IsString()

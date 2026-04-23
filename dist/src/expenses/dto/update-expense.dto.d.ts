@@ -1,7 +1,7 @@
-export declare class CreateExpenseDto {
-    name: string;
-    amount: number;
-    type: string;
+export declare class UpdateExpenseDto {
+    name?: string;
+    amount?: number;
+    type?: string;
     category?: string;
     subCategory?: string;
     costCenter?: string;

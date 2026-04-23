@@ -8,7 +8,7 @@ export declare class StatsController {
         ordersToday: number;
         totalCashflow: number;
         realRevenue: any;
-        totalExpenses: number;
+        totalExpenses: any;
         netProfit: number;
         conversionRate: number;
     }>;
@@ -19,7 +19,7 @@ export declare class StatsController {
             cashflow: number;
             revenue: number;
             orders: number;
-            expenses: number;
+            expenses: any;
         }[];
     }>;
     getTopCourses(limit?: string): Promise<{

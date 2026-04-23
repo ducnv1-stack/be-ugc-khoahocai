@@ -30,8 +30,8 @@ export declare class OrdersService {
                 description: string | null;
                 price: number;
                 duration: number;
-                status: string;
                 totalSessions: number;
+                status: string;
                 deletedAt: Date | null;
             };
         } & {
@@ -95,8 +95,8 @@ export declare class OrdersService {
                 description: string | null;
                 price: number;
                 duration: number;
-                status: string;
                 totalSessions: number;
+                status: string;
                 deletedAt: Date | null;
             };
         } & {

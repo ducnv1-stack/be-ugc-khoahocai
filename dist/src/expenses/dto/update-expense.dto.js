@@ -9,9 +9,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateExpenseDto = void 0;
+exports.UpdateExpenseDto = void 0;
 const class_validator_1 = require("class-validator");
-class CreateExpenseDto {
+class UpdateExpenseDto {
     name;
     amount;
     type;
@@ -26,72 +26,75 @@ class CreateExpenseDto {
     notes;
     date;
 }
-exports.CreateExpenseDto = CreateExpenseDto;
+exports.UpdateExpenseDto = UpdateExpenseDto;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "name", void 0);
+], UpdateExpenseDto.prototype, "name", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
-], CreateExpenseDto.prototype, "amount", void 0);
+], UpdateExpenseDto.prototype, "amount", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "type", void 0);
+], UpdateExpenseDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsIn)(['MARKETING', 'OPERATIONS', 'HR', 'FACILITIES', 'SOFTWARE', 'TEACHING', 'OTHER']),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "category", void 0);
+], UpdateExpenseDto.prototype, "category", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "subCategory", void 0);
+], UpdateExpenseDto.prototype, "subCategory", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsIn)(['MARKETING', 'SALES', 'OPERATIONS', 'TEACHING', 'GENERAL']),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "costCenter", void 0);
+], UpdateExpenseDto.prototype, "costCenter", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsIn)(['CASH', 'BANK_TRANSFER', 'CARD', 'EWALLET', 'OTHER']),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "paymentMethod", void 0);
+], UpdateExpenseDto.prototype, "paymentMethod", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsIn)(['FIXED', 'VARIABLE']),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "nature", void 0);
+], UpdateExpenseDto.prototype, "nature", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "vendorName", void 0);
+], UpdateExpenseDto.prototype, "vendorName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "referenceType", void 0);
+], UpdateExpenseDto.prototype, "referenceType", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "referenceId", void 0);
+], UpdateExpenseDto.prototype, "referenceId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "notes", void 0);
+], UpdateExpenseDto.prototype, "notes", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
-], CreateExpenseDto.prototype, "date", void 0);
-//# sourceMappingURL=create-expense.dto.js.map
+], UpdateExpenseDto.prototype, "date", void 0);
+//# sourceMappingURL=update-expense.dto.js.map

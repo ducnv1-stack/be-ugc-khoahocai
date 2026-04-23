@@ -51,10 +51,10 @@ let StatsService = class StatsService {
     `;
         const realRevenue = revenueStats[0]?.realRevenue || 0;
         const expensesThisMonthAgg = await this.prisma.systemExpense.aggregate({
-            where: { date: { gte: startOfMonth } },
+            where: { date: { gte: startOfMonth }, status: 'CONFIRMED' },
             _sum: { amount: true }
         });
-        const expensesThisMonth = expensesThisMonthAgg._sum.amount || 0;
+        const expensesThisMonth = expensesThisMonthAgg?._sum?.amount || 0;
         const profitThisMonth = realRevenue - expensesThisMonth;
         const totalOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth } } });
         const paidOrdersThisMonth = await this.prisma.order.count({ where: { createdAt: { gte: startOfMonth }, status: 'PAID' } });
@@ -83,7 +83,7 @@ let StatsService = class StatsService {
                 _count: { id: true }
             });
             const expAgg = await this.prisma.systemExpense.aggregate({
-                where: { date: { gte: start, lte: end } },
+                where: { date: { gte: start, lte: end }, status: 'CONFIRMED' },
                 _sum: { amount: true }
             });
             return {
@@ -91,7 +91,7 @@ let StatsService = class StatsService {
                 cashflow: cashAgg._sum.paidAmount || 0,
                 revenue: cashAgg._sum.paidAmount || 0,
                 orders: cashAgg._count.id || 0,
-                expenses: expAgg._sum.amount || 0,
+                expenses: expAgg?._sum?.amount || 0,
             };
         }));
         return { year: targetYear, months };
