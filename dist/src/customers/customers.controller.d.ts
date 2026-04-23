@@ -41,8 +41,8 @@ export declare class CustomersController {
                         description: string | null;
                         price: number;
                         duration: number;
-                        totalSessions: number;
                         status: string;
+                        totalSessions: number;
                         deletedAt: Date | null;
                     };
                 } & {
@@ -79,8 +79,8 @@ export declare class CustomersController {
                         description: string | null;
                         price: number;
                         duration: number;
-                        totalSessions: number;
                         status: string;
+                        totalSessions: number;
                         deletedAt: Date | null;
                     };
                     instructor: {
@@ -138,8 +138,8 @@ export declare class CustomersController {
                         description: string | null;
                         price: number;
                         duration: number;
-                        totalSessions: number;
                         status: string;
+                        totalSessions: number;
                         deletedAt: Date | null;
                     };
                 } & {
@@ -176,8 +176,8 @@ export declare class CustomersController {
                         description: string | null;
                         price: number;
                         duration: number;
-                        totalSessions: number;
                         status: string;
+                        totalSessions: number;
                         deletedAt: Date | null;
                     };
                     instructor: {
@@ -233,8 +233,8 @@ export declare class CustomersController {
                     description: string | null;
                     price: number;
                     duration: number;
-                    totalSessions: number;
                     status: string;
+                    totalSessions: number;
                     deletedAt: Date | null;
                 };
             } & {

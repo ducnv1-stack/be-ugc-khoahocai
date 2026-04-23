@@ -12,8 +12,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
@@ -24,8 +24,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }[]>;
     findAllTrash(): import(".prisma/client").Prisma.PrismaPromise<{
@@ -36,8 +36,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }[]>;
     findOne(id: string): Promise<{
@@ -48,8 +48,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     update(id: string, updateCourseDto: UpdateCourseDto): Promise<{
@@ -60,8 +60,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     hardDelete(id: string, req: any): Promise<{
@@ -72,8 +72,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     restore(id: string, req: any): Promise<{
@@ -84,8 +84,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
     remove(id: string, req: any): Promise<{
@@ -96,8 +96,8 @@ export declare class CoursesController {
         description: string | null;
         price: number;
         duration: number;
-        totalSessions: number;
         status: string;
+        totalSessions: number;
         deletedAt: Date | null;
     }>;
 }

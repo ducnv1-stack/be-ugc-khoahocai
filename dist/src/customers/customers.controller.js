@@ -69,7 +69,7 @@ let CustomersController = class CustomersController {
 exports.CustomersController = CustomersController;
 __decorate([
     (0, common_1.Post)(),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.create', 'customers.manage'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -96,7 +96,7 @@ __decorate([
 ], CustomersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('trash'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.delete', 'customers.restore', 'customers.manage'),
     __param(0, (0, common_1.Query)('search')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -114,7 +114,7 @@ __decorate([
 ], CustomersController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.update', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -124,7 +124,7 @@ __decorate([
 ], CustomersController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id/lead'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.delete', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -132,7 +132,7 @@ __decorate([
 ], CustomersController.prototype, "deleteLead", null);
 __decorate([
     (0, common_1.Delete)(':id/permanent'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.delete', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -141,7 +141,7 @@ __decorate([
 ], CustomersController.prototype, "hardDelete", null);
 __decorate([
     (0, common_1.Patch)(':id/restore'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.restore', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -150,7 +150,7 @@ __decorate([
 ], CustomersController.prototype, "restore", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('customers.delete', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),

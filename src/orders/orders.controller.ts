@@ -12,7 +12,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @RequirePermissions('orders.manage')
+  @RequirePermissions('orders.create', 'orders.manage')
   create(@Body() createOrderDto: CreateOrderDto, @Request() req: any) {
     const saleId = req.user.id;
     return this.ordersService.create(createOrderDto, saleId);
@@ -31,13 +31,13 @@ export class OrdersController {
   }
 
   @Patch(':id/memo')
-  @RequirePermissions('customers.manage')
+  @RequirePermissions('orders.update', 'orders.manage', 'customers.manage')
   updateMemo(@Param('id') id: string, @Body('memo') memo: string) {
     return this.ordersService.updateMemo(id, memo);
   }
 
   @Patch(':id/price')
-  @RequirePermissions('customers.manage')
+  @RequirePermissions('orders.update', 'orders.manage', 'customers.manage')
   updatePrice(
     @Param('id') id: string, 
     @Body() data: { discountType?: DiscountType, discountValue?: number, finalPrice: number },
@@ -47,7 +47,7 @@ export class OrdersController {
   }
 
   @Patch(':id/paid-amount')
-  @RequirePermissions('customers.manage')
+  @RequirePermissions('orders.payment.update', 'orders.manage', 'customers.manage')
   updatePaidAmount(
     @Param('id') id: string,
     @Body('paidAmount') paidAmount: number,
@@ -57,7 +57,7 @@ export class OrdersController {
   }
 
   @Patch(':id/invoice-status')
-  @RequirePermissions('customers.manage')
+  @RequirePermissions('orders.invoice.update', 'orders.manage', 'customers.manage')
   updateInvoiceStatus(
     @Param('id') id: string,
     @Body('invoiceIssued') invoiceIssued: boolean,
@@ -67,7 +67,7 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  @RequirePermissions('customers.manage')
+  @RequirePermissions('orders.delete', 'orders.manage', 'customers.manage')
   remove(@Param('id') id: string, @Request() req: any) {
     return this.ordersService.remove(id, req.user.id);
   }

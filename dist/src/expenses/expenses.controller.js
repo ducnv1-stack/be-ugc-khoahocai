@@ -18,6 +18,7 @@ const expenses_service_1 = require("./expenses.service");
 const create_expense_dto_1 = require("./dto/create-expense.dto");
 const update_expense_dto_1 = require("./dto/update-expense.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
 const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let ExpensesController = class ExpensesController {
     expensesService;
@@ -136,7 +137,7 @@ __decorate([
 ], ExpensesController.prototype, "remove", null);
 exports.ExpensesController = ExpensesController = __decorate([
     (0, common_1.Controller)('expenses'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [expenses_service_1.ExpensesService])
 ], ExpensesController);
 //# sourceMappingURL=expenses.controller.js.map

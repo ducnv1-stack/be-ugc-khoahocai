@@ -9,7 +9,7 @@ export class PaymentsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @RequirePermissions('orders.view', 'orders.manage')
+  @RequirePermissions('payments.view', 'orders.view', 'orders.manage')
   findAll() {
     return this.paymentsService.findAllPayments();
   }
@@ -29,14 +29,14 @@ export class PaymentsController {
 
   @Get('settings')
   @UseGuards(JwtAuthGuard)
-  @RequirePermissions('orders.manage')
+  @RequirePermissions('payments.settings.view', 'orders.manage')
   getSettings() {
     return this.paymentsService.getWebhookSettings();
   }
 
   @Get('webhook-logs')
   @UseGuards(JwtAuthGuard)
-  @RequirePermissions('orders.manage')
+  @RequirePermissions('payments.webhook-logs.view', 'orders.manage')
   getWebhookLogs() {
     return this.paymentsService.getWebhookLogs();
   }

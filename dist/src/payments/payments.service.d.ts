@@ -52,8 +52,8 @@ export declare class PaymentsService {
                     description: string | null;
                     price: number;
                     duration: number;
-                    totalSessions: number;
                     status: string;
+                    totalSessions: number;
                     deletedAt: Date | null;
                 };
             } & {

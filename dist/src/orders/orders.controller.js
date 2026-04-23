@@ -53,7 +53,7 @@ let OrdersController = class OrdersController {
 exports.OrdersController = OrdersController;
 __decorate([
     (0, common_1.Post)(),
-    (0, permissions_decorator_1.RequirePermissions)('orders.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.create', 'orders.manage'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -77,7 +77,7 @@ __decorate([
 ], OrdersController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id/memo'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.update', 'orders.manage', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('memo')),
     __metadata("design:type", Function),
@@ -86,7 +86,7 @@ __decorate([
 ], OrdersController.prototype, "updateMemo", null);
 __decorate([
     (0, common_1.Patch)(':id/price'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.update', 'orders.manage', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -96,7 +96,7 @@ __decorate([
 ], OrdersController.prototype, "updatePrice", null);
 __decorate([
     (0, common_1.Patch)(':id/paid-amount'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.payment.update', 'orders.manage', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('paidAmount')),
     __param(2, (0, common_1.Request)()),
@@ -106,7 +106,7 @@ __decorate([
 ], OrdersController.prototype, "updatePaidAmount", null);
 __decorate([
     (0, common_1.Patch)(':id/invoice-status'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.invoice.update', 'orders.manage', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('invoiceIssued')),
     __param(2, (0, common_1.Request)()),
@@ -116,7 +116,7 @@ __decorate([
 ], OrdersController.prototype, "updateInvoiceStatus", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, permissions_decorator_1.RequirePermissions)('customers.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('orders.delete', 'orders.manage', 'customers.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),

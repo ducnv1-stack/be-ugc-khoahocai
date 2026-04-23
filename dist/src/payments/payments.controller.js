@@ -42,7 +42,7 @@ exports.PaymentsController = PaymentsController;
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, permissions_decorator_1.RequirePermissions)('orders.view', 'orders.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('payments.view', 'orders.view', 'orders.manage'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -64,7 +64,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('settings'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, permissions_decorator_1.RequirePermissions)('orders.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('payments.settings.view', 'orders.manage'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -72,7 +72,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('webhook-logs'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, permissions_decorator_1.RequirePermissions)('orders.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('payments.webhook-logs.view', 'orders.manage'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)

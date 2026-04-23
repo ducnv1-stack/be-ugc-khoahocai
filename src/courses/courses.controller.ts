@@ -12,7 +12,7 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.create', 'courses.manage')
   create(@Body() createCourseDto: CreateCourseDto) {
     return this.coursesService.create(createCourseDto);
   }
@@ -24,7 +24,7 @@ export class CoursesController {
   }
 
   @Get('trash')
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.delete', 'courses.restore', 'courses.manage')
   findAllTrash() {
     return this.coursesService.findAll(true);
   }
@@ -36,25 +36,25 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.update', 'courses.manage')
   update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
     return this.coursesService.update(id, updateCourseDto);
   }
 
   @Delete(':id/permanent')
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.delete', 'courses.manage')
   hardDelete(@Param('id') id: string, @Request() req: any) {
     return this.coursesService.hardDelete(id, req.user);
   }
 
   @Patch(':id/restore')
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.restore', 'courses.manage')
   restore(@Param('id') id: string, @Request() req: any) {
     return this.coursesService.restore(id, req.user);
   }
 
   @Delete(':id')
-  @RequirePermissions('courses.manage')
+  @RequirePermissions('courses.delete', 'courses.manage')
   remove(@Param('id') id: string, @Request() req: any) {
     return this.coursesService.softDelete(id, req.user);
   }

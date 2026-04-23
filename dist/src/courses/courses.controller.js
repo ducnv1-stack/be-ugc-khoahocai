@@ -53,7 +53,7 @@ let CoursesController = class CoursesController {
 exports.CoursesController = CoursesController;
 __decorate([
     (0, common_1.Post)(),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.create', 'courses.manage'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_course_dto_1.CreateCourseDto]),
@@ -68,7 +68,7 @@ __decorate([
 ], CoursesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('trash'),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.delete', 'courses.restore', 'courses.manage'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -83,7 +83,7 @@ __decorate([
 ], CoursesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.update', 'courses.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -92,7 +92,7 @@ __decorate([
 ], CoursesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id/permanent'),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.delete', 'courses.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -101,7 +101,7 @@ __decorate([
 ], CoursesController.prototype, "hardDelete", null);
 __decorate([
     (0, common_1.Patch)(':id/restore'),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.restore', 'courses.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -110,7 +110,7 @@ __decorate([
 ], CoursesController.prototype, "restore", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, permissions_decorator_1.RequirePermissions)('courses.manage'),
+    (0, permissions_decorator_1.RequirePermissions)('courses.delete', 'courses.manage'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
