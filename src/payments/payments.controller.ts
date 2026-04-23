@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Get, UseGuards, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
@@ -37,7 +37,19 @@ export class PaymentsController {
   @Get('webhook-logs')
   @UseGuards(JwtAuthGuard)
   @RequirePermissions('payments.webhook-logs.view', 'orders.manage')
-  getWebhookLogs() {
-    return this.paymentsService.getWebhookLogs();
+  getWebhookLogs(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+    @Query('transferType') transferType?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.paymentsService.getWebhookLogs({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      status,
+      transferType,
+      search,
+    });
   }
 }

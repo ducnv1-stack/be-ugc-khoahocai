@@ -67,10 +67,21 @@ export declare class PaymentsController {
     })[]>;
     handleSePayWebhook(payload: any, authHeader: string): Promise<{
         status: string;
+        mode: string;
+        orderId: string;
+        message?: undefined;
+    } | {
+        status: string;
         message: string;
+        orderId?: undefined;
+    } | {
+        status: string;
+        message: string;
+        orderId: string;
     } | {
         status: string;
         message?: undefined;
+        orderId?: undefined;
     }>;
     verifyWebhook(): {
         status: string;
@@ -85,12 +96,11 @@ export declare class PaymentsController {
             accountName: any;
         };
     }>;
-    getWebhookLogs(): Promise<{
-        id: string;
-        createdAt: Date;
-        status: string;
-        source: string;
-        payload: import("@prisma/client/runtime/library").JsonValue;
-        retryCount: number;
-    }[]>;
+    getWebhookLogs(page?: string, limit?: string, status?: string, transferType?: string, search?: string): Promise<{
+        items: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
 }

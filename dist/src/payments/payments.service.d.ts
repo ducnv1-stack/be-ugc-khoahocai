@@ -1,8 +1,9 @@
-import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { SocketGateway } from '../socket/socket.gateway';
-import { NotificationsService } from '../notifications/notifications.service';
+import { Prisma } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { SocketGateway } from '../socket/socket.gateway';
 export declare class PaymentsService {
     private prisma;
     private configService;
@@ -10,22 +11,39 @@ export declare class PaymentsService {
     private notificationsService;
     private auditService;
     private readonly logger;
+    private static readonly LP_NOTE_PREFIX;
     constructor(prisma: PrismaService, configService: ConfigService, socketGateway: SocketGateway, notificationsService: NotificationsService, auditService: AuditService);
     handleSePayWebhook(payload: any, authHeader: string): Promise<{
         status: string;
+        mode: string;
+        orderId: string;
+        message?: undefined;
+    } | {
+        status: string;
         message: string;
+        orderId?: undefined;
+    } | {
+        status: string;
+        message: string;
+        orderId: string;
     } | {
         status: string;
         message?: undefined;
+        orderId?: undefined;
     }>;
-    getWebhookLogs(): Promise<{
-        id: string;
-        createdAt: Date;
-        status: string;
-        source: string;
-        payload: import("@prisma/client/runtime/library").JsonValue;
-        retryCount: number;
-    }[]>;
+    getWebhookLogs(query?: {
+        page?: number;
+        limit?: number;
+        status?: string;
+        transferType?: string;
+        search?: string;
+    }): Promise<{
+        items: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
     findAllPayments(): Promise<({
         order: {
             customer: {
@@ -87,9 +105,8 @@ export declare class PaymentsService {
         orderId: string;
         amount: number;
         transactionCode: string | null;
-        rawData: import("@prisma/client/runtime/library").JsonValue | null;
+        rawData: Prisma.JsonValue | null;
     })[]>;
-    private removeAccents;
     getWebhookSettings(): Promise<{
         url: string;
         secret: any;
@@ -99,4 +116,9 @@ export declare class PaymentsService {
             accountName: any;
         };
     }>;
+    private handleLandingPageWebhook;
+    private parseLandingPageMemo;
+    private getAutomationUser;
+    private generateNextCustomerCode;
+    private removeAccents;
 }

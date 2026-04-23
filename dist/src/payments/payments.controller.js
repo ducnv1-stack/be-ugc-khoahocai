@@ -34,8 +34,14 @@ let PaymentsController = class PaymentsController {
     getSettings() {
         return this.paymentsService.getWebhookSettings();
     }
-    getWebhookLogs() {
-        return this.paymentsService.getWebhookLogs();
+    getWebhookLogs(page, limit, status, transferType, search) {
+        return this.paymentsService.getWebhookLogs({
+            page: page ? Number(page) : undefined,
+            limit: limit ? Number(limit) : undefined,
+            status,
+            transferType,
+            search,
+        });
     }
 };
 exports.PaymentsController = PaymentsController;
@@ -73,8 +79,13 @@ __decorate([
     (0, common_1.Get)('webhook-logs'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, permissions_decorator_1.RequirePermissions)('payments.webhook-logs.view', 'orders.manage'),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('status')),
+    __param(3, (0, common_1.Query)('transferType')),
+    __param(4, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "getWebhookLogs", null);
 exports.PaymentsController = PaymentsController = __decorate([
