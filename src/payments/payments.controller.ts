@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Get, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Get, UseGuards, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
@@ -15,6 +15,7 @@ export class PaymentsController {
   }
 
   @Post('webhook/sepay')
+  @HttpCode(HttpStatus.OK)
   handleSePayWebhook(
     @Body() payload: any,
     @Headers('authorization') authHeader: string

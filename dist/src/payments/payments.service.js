@@ -397,18 +397,6 @@ let PaymentsService = class PaymentsService {
                         });
                     }
                 }
-                const existingPaidOrder = await tx.order.findFirst({
-                    where: {
-                        customerId: customer.id,
-                        status: client_1.OrderStatus.PAID,
-                        items: {
-                            some: { courseId: course.id },
-                        },
-                    },
-                });
-                if (existingPaidOrder) {
-                    throw new Error('CUSTOMER_ALREADY_PURCHASED_COURSE');
-                }
                 const order = await tx.order.create({
                     data: {
                         customerId: customer.id,
@@ -501,14 +489,6 @@ let PaymentsService = class PaymentsService {
                     message: 'Duplicate LP transaction',
                 };
             }
-            if (error?.message === 'CUSTOMER_ALREADY_PURCHASED_COURSE') {
-                this.logger.warn(`LP webhook requires manual review because customer ${lpMemo.phone} already has paid order for ${lpMemo.courseCode}`);
-                await updateLog('MANUAL_REVIEW');
-                return {
-                    status: 'manual_review',
-                    message: 'Customer already purchased this course',
-                };
-            }
             this.logger.error(`Error processing LP webhook ${transactionCode}:`, error);
             await updateLog('ERROR');
             throw error;
@@ -519,10 +499,38 @@ let PaymentsService = class PaymentsService {
             .replace(/\s+/g, ' ')
             .trim()
             .toUpperCase();
-        if (!rawMemo.startsWith('LP ')) {
+        const ugcIndex = rawMemo.indexOf('UGC ');
+        const lpIndex = rawMemo.indexOf('LP ');
+        if (ugcIndex === -1 && lpIndex === -1) {
             return null;
         }
-        const parts = rawMemo.split(' ');
+        const isUGC = ugcIndex !== -1 && (lpIndex === -1 || ugcIndex < lpIndex);
+        const startIndex = isUGC ? ugcIndex : lpIndex;
+        const parts = rawMemo.substring(startIndex).split(' ');
+        if (isUGC) {
+            if (parts.length < 2) {
+                return {
+                    rawMemo,
+                    isValid: false,
+                    error: 'Thiếu số điện thoại sau mã UGC',
+                };
+            }
+            const phone = parts[1].replace(/\D/g, '');
+            if (!/^(0|\+?84)\d{8,10}$/.test(phone)) {
+                return {
+                    rawMemo,
+                    isValid: false,
+                    error: 'Số điện thoại không hợp lệ',
+                };
+            }
+            return {
+                rawMemo,
+                isValid: true,
+                courseCode: 'UGC',
+                phone,
+                customerName: 'Khách từ Landing Page',
+            };
+        }
         if (parts.length < 4) {
             return {
                 rawMemo,

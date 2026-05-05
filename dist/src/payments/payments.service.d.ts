@@ -48,43 +48,43 @@ export declare class PaymentsService {
         order: {
             customer: {
                 id: string;
-                email: string | null;
-                name: string | null;
                 createdAt: Date;
+                name: string | null;
+                source: string | null;
                 code: string | null;
-                deletedAt: Date | null;
                 phone: string;
+                email: string | null;
                 cccd: string | null;
                 address: string | null;
-                source: string | null;
                 notes: string | null;
                 tags: string[];
                 assignedSaleId: string | null;
+                deletedAt: Date | null;
             };
             items: ({
                 course: {
                     id: string;
-                    name: string;
+                    status: string;
                     createdAt: Date;
+                    name: string;
                     code: string;
+                    deletedAt: Date | null;
                     description: string | null;
                     price: number;
                     duration: number;
-                    status: string;
                     totalSessions: number;
-                    deletedAt: Date | null;
                 };
             } & {
                 id: string;
-                price: number;
                 orderId: string;
+                price: number;
                 courseId: string;
             })[];
         } & {
             id: string;
+            status: import(".prisma/client").$Enums.OrderStatus;
             createdAt: Date;
             customerId: string;
-            status: import(".prisma/client").$Enums.OrderStatus;
             saleId: string;
             totalPrice: number;
             discountType: import(".prisma/client").$Enums.DiscountType | null;
@@ -100,12 +100,12 @@ export declare class PaymentsService {
         };
     } & {
         id: string;
-        createdAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
+        transactionCode: string | null;
         orderId: string;
         amount: number;
-        transactionCode: string | null;
+        status: import(".prisma/client").$Enums.PaymentStatus;
         rawData: Prisma.JsonValue | null;
+        createdAt: Date;
     })[]>;
     getWebhookSettings(): Promise<{
         url: string;
